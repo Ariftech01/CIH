@@ -58,21 +58,13 @@ class ProjectService:
         with get_db_session() as session:
             repo = ProjectRepository(session)
             if repo.get_by_code(code):
-                code = self.generate_unique_project_code(code)
+                raise DuplicateProjectError(f"Project with code '{code}' already exists.")
 
             data = project_in.model_dump()
             data["project_code"] = code
-            try:
-                project = repo.create(data)
-                invalidate_project_caches()
-                return ProjectResponse.model_validate(project)
-            except Exception:
-                session.rollback()
-                code = self.generate_unique_project_code(f"{code}-1")
-                data["project_code"] = code
-                project = repo.create(data)
-                invalidate_project_caches()
-                return ProjectResponse.model_validate(project)
+            project = repo.create(data)
+            invalidate_project_caches()
+            return ProjectResponse.model_validate(project)
 
     def get_project_by_id(self, project_id: str) -> ProjectResponse:
         with get_db_session() as session:
