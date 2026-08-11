@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cih-app
+    ports:
+      - "8501:8501"
+    environment:
+      - APP_ENV=development
+      - LOG_LEVEL=INFO
+      - DATABASE_URL=postgresql://cih_user:cih_password@postgres:5432/cih_db
+      - OLLAMA_HOST=http://host.docker.internal:11434
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: cih-postgres
+    environment:
+      POSTGRES_USER: cih_user
+      POSTGRES_PASSWORD: cih_password
+      POSTGRES_DB: cih_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cih_user -d cih_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

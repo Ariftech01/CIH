@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: construction-intelligence-hub
+    env: python
+    region: singapore
+    plan: starter
+    buildCommand: "pip install --upgrade pip && pip install -r requirements.txt && python backend/init_db.py"
+    startCommand: "streamlit run app.py --server.port 10000 --server.address 0.0.0.0 --server.headless true"
+    healthCheckPath: "/_stcore/health"
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OLLAMA_HOST
+        value: "http://localhost:11434"
+      - key: MODEL_NAME
+        value: "llama3.2"
