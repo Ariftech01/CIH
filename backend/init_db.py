@@ -1,5 +1,5 @@
 """
-Database Initialization Script for Construction Intelligence Hub (CIH).
+Database Initialization Script for Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH).
 Verifies database connection, registers models, and creates all tables.
 """
 import sys
@@ -13,7 +13,7 @@ from backend.database.connection import ping_database
 from backend.app_logging.logger import logger
 
 def init_db():
-    logger.info("Initializing Construction Intelligence Hub (CIH) Database Foundation...")
+    logger.info("Initializing Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH) Database Foundation...")
     try:
         if ping_database():
             logger.info("Database ping successful.")

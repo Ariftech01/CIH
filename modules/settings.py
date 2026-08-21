@@ -99,7 +99,7 @@ def render() -> None:
         """
         <div class="cih-glass-card">
             <div class="cih-card-title">ℹ Application Information</div>
-            <div class="cih-metric-row"><span class="cih-metric-label">Application</span><span class="cih-metric-value">Construction Intelligence Hub</span></div>
+            <div class="cih-metric-row"><span class="cih-metric-label">Application</span><span class="cih-metric-value">Agentic AI for Safety Monitoring with Construction Risk Analytics</span></div>
             <div class="cih-metric-row"><span class="cih-metric-label">Version</span><span class="cih-metric-value">1.0.0</span></div>
             <div class="cih-metric-row"><span class="cih-metric-label">Framework</span><span class="cih-metric-value">Streamlit</span></div>
             <div class="cih-metric-row"><span class="cih-metric-label">Environment</span><span class="cih-metric-value">Frontend Prototype</span></div>

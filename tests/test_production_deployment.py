@@ -87,7 +87,7 @@ class TestProductionDeployment(unittest.TestCase):
 
     def test_api_gateway_and_security(self):
         openapi = api_gateway.get_openapi_schema()
-        self.assertEqual(openapi["info"]["title"], "Construction Intelligence Hub Enterprise API")
+        self.assertEqual(openapi["info"]["title"], "Agentic AI for Safety Monitoring with Construction Risk Analytics Enterprise API")
 
         headers = security_service.get_security_headers()
         self.assertIn("X-Content-Type-Options", headers)

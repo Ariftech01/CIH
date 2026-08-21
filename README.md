@@ -1,4 +1,4 @@
-# Construction Intelligence Hub (CIH)
+# Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH)
 
 **Enterprise Construction Management Platform**
 
@@ -141,7 +141,7 @@ This is a **frontend prototype** with no backend or database. All data is genera
 
 ## Credits
 
-- **Project:** Construction Intelligence Hub
+- **Project:** Agentic AI for Safety Monitoring with Construction Risk Analytics
 - **Version:** 1.0
 - **Organization:** Infosys Internship
 - **Type:** Frontend Prototype

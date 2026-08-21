@@ -117,15 +117,97 @@ def inject_global_styles(active_page: str = None) -> None:
             display: none !important;
         }}
 
-        section[data-testid="stSidebar"] {{
+        section[data-testid="stSidebar"],
+        [data-testid="stSidebar"] {{
             background: var(--sidebar-bg) !important;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-right: 1px solid var(--sidebar-border) !important;
+            width: 300px !important;
+            min-width: 300px !important;
+            max-width: 300px !important;
+            flex-basis: 300px !important;
+            overflow: hidden !important;
         }}
 
-        section[data-testid="stSidebar"] > div {{
-            padding-top: 1rem;
+        /* Streamlit 1.30+ Sidebar Header & Collapse Controls */
+        [data-testid="stSidebarHeader"],
+        [data-testid="stSidebarNav"],
+        [data-testid="stSidebarCollapseButton"],
+        [data-testid="collapsedControl"] {{
+            display: none !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            max-height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            visibility: hidden !important;
+        }}
+
+        /* Reset outer sidebar wrapper so padding is not applied twice */
+        section[data-testid="stSidebar"] > div,
+        [data-testid="stSidebarContent"] {{
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+            overflow-y: hidden !important;
+            overflow-x: hidden !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-start !important;
+            box-sizing: border-box !important;
+        }}
+
+        /* Dedicated single inner sidebar user content container */
+        [data-testid="stSidebarUserContent"] {{
+            padding-top: 40px !important;
+            padding-bottom: 16px !important;
+            padding-left: 16px !important;
+            padding-right: 16px !important;
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+            overflow-y: hidden !important;
+            overflow-x: hidden !important;
+            height: 100% !important;
+            max-height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-start !important;
+            box-sizing: border-box !important;
+        }}
+
+        [data-testid="stSidebarUserContent"] [data-testid="stVerticalBlock"],
+        [data-testid="stSidebarUserContent"] [data-testid="stVerticalBlockBorderWrapper"],
+        section[data-testid="stSidebar"] [data-testid="stVerticalBlock"],
+        section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {{
+            gap: 0px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+            min-height: 100% !important;
+            justify-content: flex-start !important;
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+        }}
+
+        [data-testid="stSidebarUserContent"] [data-testid="stElementContainer"] {{
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
         }}
 
         .block-container {{
@@ -359,24 +441,50 @@ def inject_global_styles(active_page: str = None) -> None:
 
         .cih-sidebar-brand {{
             text-align: center;
-            padding: 1rem 0 1.5rem 0;
-            border-bottom: 1px solid var(--sidebar-border) !important;
-            margin-bottom: 1rem;
+            padding: 0;
+            margin-top: 0;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
         }}
 
         .cih-sidebar-title {{
-            font-size: 1.15rem;
+            font-size: 16px;
             font-weight: 800;
+            line-height: 21px;
             background: linear-gradient(135deg, #3B82F6, #60A5FA);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.01em;
+            text-align: center;
+            white-space: normal;
+            word-break: normal !important;
+            overflow-wrap: break-word !important;
+            word-wrap: normal !important;
+            margin-top: 0;
+            margin-bottom: 5px;
+            padding: 0 2px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            -webkit-box-decoration-break: clone;
+            box-decoration-break: clone;
         }}
 
         .cih-sidebar-tagline {{
-            font-size: 0.7rem;
+            font-size: 13.5px;
             color: var(--text-muted) !important;
-            margin-top: 0.25rem;
+            margin-top: 0;
+            margin-bottom: 0;
+            text-align: center;
+            white-space: normal;
+            line-height: 18px;
+            padding: 0 2px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
         }}
 
         .cih-report-card {{
@@ -543,22 +651,38 @@ def inject_global_styles(active_page: str = None) -> None:
         }}
 
         /* ─────────────────────────────────────────────────────────── */
-        /* GLASSMORPHISM SIDEBAR RADIO NAVIGATION */
+        /* GLASSMORPHISM SIDEBAR RADIO NAVIGATION & LOGOUT */
         /* ─────────────────────────────────────────────────────────── */
         
-        /* ─────────────────────────────────────────────────────────── */
-        /* GLASSMORPHISM SIDEBAR RADIO NAVIGATION */
-        /* ─────────────────────────────────────────────────────────── */
-        
-        /* Container styling */
-        [data-testid="stSidebar"] div[role="radiogroup"] {{
-            gap: 0.35rem !important;
-            padding: 0.25rem 0 !important;
+        [data-testid="stSidebar"] div[data-testid="stRadio"] {{
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
         }}
 
-        /* Hide native radio input element */
-        [data-testid="stSidebar"] div[role="radiogroup"] input[type="radio"] {{
+        /* Container styling */
+        [data-testid="stSidebar"] div[role="radiogroup"] {{
+            gap: 5px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            flex-shrink: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            box-sizing: border-box !important;
+        }}
+
+        /* Hide native radio input element and radio circle visual */
+        [data-testid="stSidebar"] div[role="radiogroup"] input[type="radio"],
+        [data-testid="stSidebar"] div[role="radiogroup"] label > div:first-child:not([data-testid="stMarkdownContainer"]) {{
             display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }}
 
         /* Remove default Streamlit list margins/borders/backgrounds from container wrapper */
@@ -568,53 +692,72 @@ def inject_global_styles(active_page: str = None) -> None:
             box-shadow: none !important;
             padding: 0 !important;
             margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
         }}
 
         /* Default (Unselected) state for option labels */
         [data-testid="stSidebar"] div[role="radiogroup"] label {{
             display: flex !important;
             align-items: center !important;
+            justify-content: flex-start !important;
             background: transparent !important;
             border: 1px solid transparent !important;
-            border-left: 4px solid transparent !important;
+            border-left: 3px solid transparent !important;
             box-shadow: none !important;
             border-radius: 8px !important;
-            padding: 0.6rem 0.85rem !important;
-            margin: 2px 0 !important;
+            padding: 0 12px !important;
+            margin: 0 !important;
+            min-height: 42px !important;
+            height: 42px !important;
+            max-height: 42px !important;
+            width: 100% !important;
+            max-width: 100% !important;
             cursor: pointer !important;
             transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-            color: #94A3B8 !important;
+            color: var(--text-secondary) !important;
             font-weight: 600 !important;
-            font-size: 0.88rem !important;
+            font-size: 16px !important;
+            white-space: nowrap !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
         }}
 
-        /* Ensure label text and markdown containers remain fully visible */
+        /* Ensure label text and markdown containers remain fully visible and on a SINGLE LINE */
         [data-testid="stSidebar"] div[role="radiogroup"] label div[data-testid="stMarkdownContainer"],
         [data-testid="stSidebar"] div[role="radiogroup"] label p,
         [data-testid="stSidebar"] div[role="radiogroup"] label span {{
-            display: block !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
             visibility: visible !important;
             opacity: 1 !important;
-            color: #94A3B8 !important;
+            color: var(--text-secondary) !important;
             font-weight: 600 !important;
-            font-size: 0.88rem !important;
+            font-size: 16px !important;
             margin: 0 !important;
             padding: 0 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            line-height: 1 !important;
+            width: 100% !important;
         }}
 
         /* Hover state for unselected option labels */
         [data-testid="stSidebar"] div[role="radiogroup"] label:hover {{
-            background: rgba(255, 255, 255, 0.07) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-left: 4px solid rgba(59, 130, 246, 0.5) !important;
-            color: #F8FAFC !important;
+            background: rgba(59, 130, 246, 0.08) !important;
+            border: 1px solid rgba(59, 130, 246, 0.15) !important;
+            border-left: 3px solid rgba(59, 130, 246, 0.5) !important;
+            color: var(--text-primary) !important;
             transform: translateY(-1px);
         }}
 
         [data-testid="stSidebar"] div[role="radiogroup"] label:hover div[data-testid="stMarkdownContainer"],
         [data-testid="stSidebar"] div[role="radiogroup"] label:hover p,
         [data-testid="stSidebar"] div[role="radiogroup"] label:hover span {{
-            color: #F8FAFC !important;
+            color: var(--text-primary) !important;
         }}
 
         /* Active (Selected) state styling */
@@ -625,25 +768,89 @@ def inject_global_styles(active_page: str = None) -> None:
             backdrop-filter: blur(12px) !important;
             -webkit-backdrop-filter: blur(12px) !important;
             border: 1px solid rgba(59, 130, 246, 0.4) !important;
-            border-left: 4px solid #3B82F6 !important;
-            color: #FFFFFF !important;
+            border-left: 3px solid #3B82F6 !important;
+            color: var(--tab-text-selected, #FFFFFF) !important;
             font-weight: 700 !important;
             box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25) !important;
             transform: translateY(-1px);
         }}
 
-        /* Ensure active label child elements inherit bright white color */
+        /* Ensure active label child elements inherit proper active color */
         [data-testid="stSidebar"] div[role="radiogroup"] label[data-checked="true"] *,
         [data-testid="stSidebar"] div[role="radiogroup"] div[data-checked="true"] label *,
         [data-testid="stSidebar"] div[role="radiogroup"] label:has(input[type="radio"]:checked) * {{
-            color: #FFFFFF !important;
+            color: var(--tab-text-selected, #FFFFFF) !important;
             font-weight: 700 !important;
+            font-size: 16px !important;
+            white-space: nowrap !important;
         }}
 
         /* Focus state accessibility */
         [data-testid="stSidebar"] div[role="radiogroup"] label:focus-within {{
             outline: 2px solid var(--primary-color) !important;
             outline-offset: 2px !important;
+        }}
+
+        /* SIDEBAR COMPACT LOGOUT BUTTON */
+        [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:has(div.stButton),
+        [data-testid="stSidebar"] div:has(> div.stButton),
+        [data-testid="stSidebar"] div.stButton {{
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            margin-top: auto !important;
+            padding-top: 12px !important;
+            margin-bottom: 0 !important;
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            flex-shrink: 0 !important;
+        }}
+
+        [data-testid="stSidebar"] div.stButton > button {{
+            background: rgba(239, 68, 68, 0.1) !important;
+            color: #EF4444 !important;
+            border: 1px solid rgba(239, 68, 68, 0.3) !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            font-size: 15px !important;
+            height: 40px !important;
+            min-height: 40px !important;
+            max-height: 40px !important;
+            width: 235px !important;
+            max-width: 235px !important;
+            margin: 0 auto !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: none !important;
+            transition: all 0.2s ease !important;
+            box-sizing: border-box !important;
+        }}
+
+        [data-testid="stSidebar"] div.stButton > button:hover {{
+            background: rgba(239, 68, 68, 0.2) !important;
+            border-color: rgba(239, 68, 68, 0.6) !important;
+            color: #F87171 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2) !important;
+        }}
+
+        [data-testid="stSidebar"] div.stButton > button:active {{
+            transform: translateY(0) !important;
+        }}
+
+        [data-testid="stSidebar"] div.stButton > button p,
+        [data-testid="stSidebar"] div.stButton > button span {{
+            color: #EF4444 !important;
+            font-weight: 600 !important;
+            font-size: 15px !important;
+            margin: 0 !important;
+        }}
+
+        [data-testid="stSidebar"] div.stButton > button:hover p,
+        [data-testid="stSidebar"] div.stButton > button:hover span {{
+            color: #F87171 !important;
         }}
         </style>
         """,
@@ -2057,14 +2264,15 @@ def render_sidebar_branding(logo_path: str | None = None) -> None:
         if encoded:
             logo_html = (
                 f'<img src="data:image/png;base64,{encoded}" '
-                f'style="width:64px; height:64px; margin-bottom:0.5rem;" />'
+                f'style="max-width:140px; width:auto; height:60px; max-height:60px; object-fit:contain; margin:0 auto 8px auto; display:block;" '
+                f'alt="CIH Logo" />'
             )
 
     st.markdown(
         f"""
         <div class="cih-sidebar-brand">
             {logo_html}
-            <div class="cih-sidebar-title">Construction Intelligence Hub</div>
+            <div class="cih-sidebar-title">Agentic AI for Safety Monitoring with Construction Risk Analytics</div>
             <div class="cih-sidebar-tagline">Enterprise Construction Management Platform</div>
         </div>
         """,

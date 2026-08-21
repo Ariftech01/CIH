@@ -1,5 +1,5 @@
 """
-Database Seeding Script for Construction Intelligence Hub (CIH).
+Database Seeding Script for Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH).
 Populates optional development/demo seed data.
 """
 import sys

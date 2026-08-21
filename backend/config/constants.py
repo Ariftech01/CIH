@@ -1,5 +1,5 @@
 """
-Centralized Constants for Construction Intelligence Hub (CIH) Backend.
+Centralized Constants for Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH) Backend.
 """
 
 # User Roles

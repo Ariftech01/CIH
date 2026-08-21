@@ -1,8 +1,8 @@
-# CONSTRUCTION INTELLIGENCE HUB (CIH) v1.0
+# AGENTIC AI FOR SAFETY MONITORING WITH CONSTRUCTION RISK ANALYTICS (CIH) v1.0
 ## Principal Enterprise UI/UX Audit & Human-Computer Interaction (HCI) Assessment Report
 
 **Document Title:** CIH Enterprise UI/UX Audit Report  
-**Audit Target:** Construction Intelligence Hub (CIH) Enterprise Version 1.0  
+**Audit Target:** Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH) Enterprise Version 1.0  
 **Evaluator Roles:** Principal Enterprise UI/UX Architect, Product Designer, HCI Specialist, Accessibility Reviewer (WCAG 2.2), Interaction Designer, Information Architecture Specialist, Usability Evaluator  
 **Audit Date:** August 8, 2026  
 **Operating Mode:** STRICT READ-ONLY AUDIT (Zero Source Code Modifications)  
@@ -12,7 +12,7 @@
 
 ## 1. EXECUTIVE SUMMARY
 
-The **Construction Intelligence Hub (CIH) Enterprise Version 1.0** is an ambitious, domain-rich web-based construction management and risk intelligence platform built on Streamlit with a hybrid Python/WebGL/Three.js architecture. Following a major Enterprise UI/UX Modernization phase, CIH delivers a visual experience featuring a modern dark theme, glassmorphism design system tokens, high-density KPI scorecards, interactive Plotly charts, a parametric Three.js 3D spatial CAD visualizer, and an integrated AI assistant (CHIA).
+The **Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH) Enterprise Version 1.0** is an ambitious, domain-rich web-based construction management and risk intelligence platform built on Streamlit with a hybrid Python/WebGL/Three.js architecture. Following a major Enterprise UI/UX Modernization phase, CIH delivers a visual experience featuring a modern dark theme, glassmorphism design system tokens, high-density KPI scorecards, interactive Plotly charts, a parametric Three.js 3D spatial CAD visualizer, and an integrated AI assistant (CHIA).
 
 This audit presents a thorough evaluation of CIH against tier-1 enterprise software benchmarks including **Autodesk Construction Cloud**, **Oracle Primavera P6**, **Bentley SYNCHRO**, **Microsoft Power BI**, **Microsoft Azure**, and **NVIDIA Omniverse**.
 
@@ -431,7 +431,7 @@ Enterprise UX Readiness:
 80 / 100
 
 Final Verdict:
-Construction Intelligence Hub (CIH) Enterprise Version 1.0 achieves a 
+Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH) Enterprise Version 1.0 achieves a 
 high standard of visual design, information architecture, and construction 
 domain suitability. The unified CRIE 5-Agent risk scorecard and Three.js 3D 
 Spatial Workspace successfully position CIH as a futuristic, enterprise-grade 

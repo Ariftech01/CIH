@@ -1,4 +1,4 @@
-"""3D Building Visualizer Module for Construction Intelligence Hub (CIH).
+"""3D Building Visualizer Module for Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH).
 
 Futuristic Spatial Engineering Workspace & Parametric BIM Studio.
 Provides high-performance 3D scene rendering via Three.js, WebGL, OrbitControls,
@@ -12,14 +12,9 @@ from utils.styles import render_page_header
 
 
 def render() -> None:
-    """Render the Futuristic Spatial Engineering Workspace module."""
-    from backend.workflow.project_workflow import project_workflow
-    active_proj = project_workflow.get_active_project()
-    sub_title = f"Spatial Engineering Workspace • Active Project: {active_proj.project_name} ({active_proj.project_code})" if active_proj else "Spatial Engineering Workspace • Enterprise Parametric BIM Studio"
-
     render_page_header(
         "3D Building Visualizer",
-        sub_title,
+        "Spatial Engineering Workspace • Enterprise Parametric BIM Studio",
     )
 
     # 0. Inject page-scoped CSS to enforce full-viewport engineering workspace layout without scroll traps

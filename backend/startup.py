@@ -44,7 +44,7 @@ import streamlit as st
 def initialize_hybrid_runtime() -> Dict[str, Any]:
     """Initialize the shared runtime in a deployment-agnostic order (cached per process)."""
     context = build_startup_context()
-    logger.info("Starting Construction Intelligence Hub runtime initialization")
+    logger.info("Starting Agentic AI for Safety Monitoring with Construction Risk Analytics runtime initialization")
 
     if not context["database_url_configured"]:
         logger.warning("DATABASE_URL is not configured; skipping database initialization")

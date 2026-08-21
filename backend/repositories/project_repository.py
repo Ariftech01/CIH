@@ -8,8 +8,10 @@ class ProjectRepository(BaseRepository[Project]):
     def __init__(self, session: Session):
         super().__init__(Project, session)
 
-    def get_by_code(self, project_code: str) -> Optional[Project]:
-        stmt = select(Project).where(Project.project_code == project_code, Project.is_deleted == False)
+    def get_by_code(self, project_code: str, include_deleted: bool = False) -> Optional[Project]:
+        stmt = select(Project).where(Project.project_code == project_code)
+        if not include_deleted:
+            stmt = stmt.where(Project.is_deleted == False)
         return self.session.execute(stmt).scalar_one_or_none()
 
     def get_active_projects(self) -> List[Project]:

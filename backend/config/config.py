@@ -1,5 +1,5 @@
 """
-Unified App Configuration for Construction Intelligence Hub Backend.
+Unified App Configuration for Agentic AI for Safety Monitoring with Construction Risk Analytics Backend.
 """
 from .settings import settings
 from .constants import *

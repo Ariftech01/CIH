@@ -498,790 +498,791 @@ def compile_adv_context_v2(proj_details, floors_data, mat_df, lab_df, mach_df, c
 # RENDER DISPATCHER
 # ==========================================================
 
+def render_basic_cost_estimator() -> None:
+    """Render basic cost estimation calculator interface."""
+    # Script block to ensure the global floating assistant widget is shown
+    st.markdown(
+        """
+        <script>
+        (function() {
+            const hostDoc = window.parent.document || document;
+            const rootNode = hostDoc.getElementById("cih-assistant-root");
+            if (rootNode) {
+                rootNode.style.display = "block";
+            }
+        })();
+        </script>
+        """,
+        unsafe_allow_html=True
+    )
+
+    render_page_header("Cost Estimation", "Enterprise-grade construction cost calculator")
+
+    col_input, col_output = st.columns([1, 1])
+
+    with col_input:
+        st.markdown(
+            """
+            <div class="cih-glass-card">
+                <div class="cih-card-title">📝 Cost Input Parameters</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown("**Materials (Slider + Exact Input)**")
+        steel = _render_slider_number_input("Steel", 0.0, 500.0, 50.0, 0.5, "basic_steel", "Tons")
+        cement = _render_slider_number_input("Cement", 0.0, 20000.0, 2000.0, 10.0, "basic_cement", "Bags")
+        bricks = _render_slider_number_input("Bricks", 0.0, 500000.0, 50000.0, 100.0, "basic_bricks", "Units")
+        sand = _render_slider_number_input("Sand", 0.0, 2000.0, 150.0, 1.0, "basic_sand", "Cu.M")
+
+        st.markdown("**Resources (Slider + Exact Input)**")
+        labour = _render_slider_number_input("Labour", 0.0, 1000.0, 120.0, 1.0, "basic_labour", "Days")
+        machinery = _render_slider_number_input("Machinery", 0.0, 500.0, 45.0, 1.0, "basic_machinery", "Days")
+        transportation = _render_slider_number_input("Transportation", 0.0, 300.0, 30.0, 1.0, "basic_transportation", "Trips")
+
+        calculate = st.button("🔢 Calculate Estimate", use_container_width=True, type="primary", key="basic_calc")
+
+    inputs = {
+        "steel": steel, "cement": cement, "bricks": bricks, "sand": sand,
+        "labour": labour, "machinery": machinery, "transportation": transportation,
+    }
+    costs = _calculate_costs(inputs)
+
+    with col_output:
+        st.markdown(
+            """
+            <div class="cih-glass-card">
+                <div class="cih-card-title">💰 Cost Summary</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        summary_cols = st.columns(2)
+        with summary_cols[0]:
+            render_kpi_card("Material Cost", _format_inr(costs["material_cost"]), "🧱")
+        with summary_cols[1]:
+            render_kpi_card("Labour & Ops", _format_inr(costs["labour_cost"]), "👷")
+
+        summary_cols2 = st.columns(2)
+        with summary_cols2[0]:
+            render_kpi_card("Tax (18% GST)", _format_inr(costs["tax"]), "📋")
+        with summary_cols2[1]:
+            render_kpi_card("Contingency (10%)", _format_inr(costs["contingency"]), "🛡️")
+
+        st.markdown(
+            f"""
+            <div class="cih-kpi-card" style="text-align:center; margin-top:1rem; animation: pulseGlow 2s infinite;">
+                <div class="cih-kpi-label">Grand Total</div>
+                <div class="cih-kpi-value" style="font-size:2.5rem; color:#3B82F6;">{_format_inr(costs['grand_total'])}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if calculate:
+            st.success("✅ Cost estimate calculated successfully!")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    chart_col1, chart_col2 = st.columns(2)
+    with chart_col1:
+        fig = charts.create_cost_breakdown_chart(
+            costs["material_cost"], costs["labour_cost"], costs["tax"], costs["contingency"],
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    with chart_col2:
+        st.markdown(
+            f"""
+            <div class="cih-glass-card">
+                <div class="cih-card-title">📊 Rate Reference</div>
+                <div class="cih-metric-row"><span class="cih-metric-label">Steel</span><span class="cih-metric-value">₹68,000/ton</span></div>
+                <div class="cih-metric-row"><span class="cih-metric-label">Cement</span><span class="cih-metric-value">₹380/bag</span></div>
+                <div class="cih-metric-row"><span class="cih-metric-label">Bricks</span><span class="cih-metric-value">₹8.5/unit</span></div>
+                <div class="cih-metric-row"><span class="cih-metric-label">Sand</span><span class="cih-metric-value">₹4,500/cu.m</span></div>
+                <div class="cih-metric-row"><span class="cih-metric-label">Labour</span><span class="cih-metric-value">₹850/day</span></div>
+                <div class="cih-metric-row"><span class="cih-metric-label">Machinery</span><span class="cih-metric-value">₹15,000/day</span></div>
+                <div class="cih-metric-row"><span class="cih-metric-label">Transport</span><span class="cih-metric-value">₹12,000/trip</span></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+def render_construction_cost_estimator() -> None:
+    """Render advanced multi-section construction cost estimator interface."""
+    # Script block to ensure the global floating assistant widget is hidden
+    st.markdown(
+        """
+        <script>
+        (function() {
+            const hostDoc = window.parent.document || document;
+            const rootNode = hostDoc.getElementById("cih-assistant-root");
+            if (rootNode) {
+                rootNode.style.display = "none";
+            }
+        })();
+        </script>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # Injected styles for advanced estimator workspace
+    st.markdown(
+        """
+        <style>
+        .adv-workspace-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: #FFFFFF;
+            font-size: 1.6rem;
+            margin-bottom: 0.5rem;
+        }
+        .adv-glass-container {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .adv-table-wrapper {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        .adv-custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #E2E8F0;
+            font-size: 0.85rem;
+        }
+        .adv-custom-table th {
+            background: rgba(255, 255, 255, 0.04);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+            color: #94A3B8;
+            text-align: left;
+            padding: 10px 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .adv-custom-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .adv-custom-table tr:hover {
+            background: rgba(255, 255, 255, 0.015);
+        }
+        .adv-custom-table tr:last-child td {
+            border-bottom: none;
+        }
+        .adv-status-badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+        .adv-status-instock { background: rgba(34, 197, 94, 0.15); color: #4ADE80; border: 1px solid rgba(34, 197, 94, 0.25); }
+        .adv-status-ordered { background: rgba(59, 130, 246, 0.15); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.25); }
+        .adv-status-scheduled { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.25); }
+        .adv-status-pending { background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.25); }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # Initialize State Variables
+    if "adv_project_name" not in st.session_state:
+        st.session_state.adv_project_name = "Downtown Plaza Tower A"
+    if "adv_project_id" not in st.session_state:
+        st.session_state.adv_project_id = "PRJ-2026-DPTA"
+    if "adv_client_name" not in st.session_state:
+        st.session_state.adv_client_name = "Vertex Holdings Group"
+    if "adv_project_location" not in st.session_state:
+        st.session_state.adv_project_location = "Sector 62, Noida, India"
+    if "adv_construction_type" not in st.session_state:
+        st.session_state.adv_construction_type = "Commercial"
+    if "adv_building_category" not in st.session_state:
+        st.session_state.adv_building_category = "High Rise"
+    if "adv_num_floors" not in st.session_state:
+        st.session_state.adv_num_floors = 12
+    if "adv_duration_days" not in st.session_state:
+        st.session_state.adv_duration_days = 540
+    if "adv_plot_area" not in st.session_state:
+        st.session_state.adv_plot_area = 15000.0
+    if "adv_built_up_area" not in st.session_state:
+        st.session_state.adv_built_up_area = 120000.0
+    if "adv_budget_limit" not in st.session_state:
+        st.session_state.adv_budget_limit = 150000000.0
+    if "adv_chat_history" not in st.session_state:
+        st.session_state.adv_chat_history = [
+            {
+                "role": "assistant",
+                "content": "Welcome to your embedded Construction Estimator AI Advisor. I have parsed your active building layouts, material totals, and machinery rental schedule. Ask me any queries about cost-savings, timelines, or BOQs!"
+            }
+        ]
+    if "adv_floors" not in st.session_state:
+        st.session_state.adv_floors = [
+            {
+                "name": "Ground Floor",
+                "rooms": [
+                    {"name": "Reception Lobby", "type": "Custom", "length": 30.0, "width": 20.0, "height": 12.0},
+                    {"name": "Manager Office", "type": "Office", "length": 15.0, "width": 12.0, "height": 10.0},
+                    {"name": "Conference Room", "type": "Custom", "length": 25.0, "width": 15.0, "height": 10.0},
+                    {"name": "Cafeteria", "type": "Dining", "length": 20.0, "width": 15.0, "height": 10.0},
+                    {"name": "Restroom A", "type": "Bathroom", "length": 10.0, "width": 8.0, "height": 10.0},
+                ]
+            },
+            {
+                "name": "First Floor",
+                "rooms": [
+                    {"name": "Open Workstation", "type": "Office", "length": 40.0, "width": 25.0, "height": 10.0},
+                    {"name": "Pantry Room", "type": "Kitchen", "length": 12.0, "width": 10.0, "height": 10.0},
+                    {"name": "Restroom B", "type": "Bathroom", "length": 10.0, "width": 8.0, "height": 10.0},
+                    {"name": "Server Room", "type": "Store", "length": 15.0, "width": 10.0, "height": 10.0},
+                ]
+            }
+        ]
+
+    # Division of Layout into Workspace and AI Advisor Column
+    col_workspace, col_ai = st.columns([2.1, 1.0])
+
+    with col_workspace:
+        st.markdown('<div class="adv-workspace-title">🏗️ Enterprise Construction Estimator</div>', unsafe_allow_html=True)
+        st.markdown("<p style='color:#64748B; margin-top:-5px; font-size:0.85rem; margin-bottom:15px;'>Professional workspace for structural configs, detailed estimations, and documentation exports.</p>", unsafe_allow_html=True)
+
+        # ------------------------------------------------------
+        # SECTION A: PROJECT DETAILS
+        # ------------------------------------------------------
+        with st.container():
+            st.markdown(
+                """
+                <div class="cih-glass-card">
+                    <div class="cih-card-title">📝 Project Profiling (Section A)</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            
+            ap_name = st.text_input("Project Name", value=st.session_state.adv_project_name, key="adv_pname_in")
+            st.session_state.adv_project_name = ap_name
+
+            col_a1, col_a2 = st.columns(2)
+            with col_a1:
+                ap_id = st.text_input("Project ID", value=st.session_state.adv_project_id, key="adv_pid_in")
+                st.session_state.adv_project_id = ap_id
+                a_client = st.text_input("Client", value=st.session_state.adv_client_name, key="adv_client_in")
+                st.session_state.adv_client_name = a_client
+                a_budget = st.number_input("Budget Limit (₹)", min_value=0.0, value=st.session_state.adv_budget_limit, step=1000000.0, key="adv_budget_in")
+                st.session_state.adv_budget_limit = a_budget
+            with col_a2:
+                ap_loc = st.text_input("Location", value=st.session_state.adv_project_location, key="adv_loc_in")
+                st.session_state.adv_project_location = ap_loc
+                a_duration = st.number_input("Expected Timeline (Days)", min_value=10, value=int(st.session_state.adv_duration_days), step=5, key="adv_duration_in")
+                st.session_state.adv_duration_days = a_duration
+                a_plot = st.number_input("Total Plot Area (sq ft)", min_value=10.0, value=float(st.session_state.adv_plot_area), step=100.0, key="adv_plot_in")
+                st.session_state.adv_plot_area = a_plot
+
+            col_a3, col_a4 = st.columns(2)
+            with col_a3:
+                adv_c_types = ["Residential", "Commercial", "Industrial", "Hospital", "Apartment", "Villa", "School"]
+                adv_c_idx = adv_c_types.index(st.session_state.adv_construction_type) if st.session_state.adv_construction_type in adv_c_types else 0
+                ap_type = st.selectbox("Construction Type", adv_c_types, index=adv_c_idx, key="adv_type_sel")
+                st.session_state.adv_construction_type = ap_type
+            with col_a4:
+                adv_b_cats = ["Single Floor", "Duplex", "Multi Floor", "High Rise"]
+                adv_b_idx = adv_b_cats.index(st.session_state.adv_building_category) if st.session_state.adv_building_category in adv_b_cats else 0
+                ap_cat = st.selectbox("Building Category", adv_b_cats, index=adv_b_idx, key="adv_cat_sel")
+                st.session_state.adv_building_category = ap_cat
+
+            ap_floors = st.number_input("Number of Floors", min_value=1, value=int(st.session_state.adv_num_floors), step=1, key="adv_floors_in")
+            st.session_state.adv_num_floors = ap_floors
+
+        # ------------------------------------------------------
+        # SECTION B: FLOOR BUILDER
+        # ------------------------------------------------------
+        st.markdown(
+            """
+            <div class="cih-glass-card">
+                <div class="cih-card-title">🏢 Floor & Room Configurator (Section B)</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # Compute dynamic area values
+        building_area = 0.0
+        for f_idx, floor in enumerate(st.session_state.adv_floors):
+            fl_area = sum(r["length"] * r["width"] for r in floor["rooms"])
+            building_area += fl_area
+
+        # Update built-up area
+        st.session_state.adv_built_up_area = building_area
+
+        st.write(f"**Total Floors Structured: {len(st.session_state.adv_floors)} | Total Built-up Area: {building_area:,.2f} sq ft**")
+
+        for f_idx, floor in enumerate(st.session_state.adv_floors):
+            fl_area = sum(r["length"] * r["width"] for r in floor["rooms"])
+            
+            with st.expander(f"🏢 {floor['name']} — (Area: {fl_area:,.1f} sq ft)", expanded=(f_idx == 0)):
+                new_fname = st.text_input("Floor Title", value=floor["name"], key=f"adv_fname_{f_idx}")
+                if new_fname != floor["name"]:
+                    floor["name"] = new_fname
+                    st.rerun()
+
+                rooms = floor["rooms"]
+                for r_idx, room in enumerate(rooms):
+                    st.markdown(f"**Room #{r_idx + 1}**")
+                    cf_type, cf_name, cf_len, cf_wid, cf_hei, cf_area, cf_act = st.columns([1.8, 1.8, 1.0, 1.0, 1.0, 1.2, 1.2])
+                    
+                    with cf_type:
+                        adv_r_types = ["Bedroom", "Kitchen", "Hall", "Dining", "Bathroom", "Office", "Garage", "Balcony", "Study", "Store", "Utility", "Custom"]
+                        r_idx_t = adv_r_types.index(room["type"]) if room["type"] in adv_r_types else 0
+                        sel_type = st.selectbox("Type", adv_r_types, index=r_idx_t, key=f"adv_r_type_{f_idx}_{r_idx}")
+                        room["type"] = sel_type
+                    with cf_name:
+                        val_name = st.text_input("Name", value=room["name"], key=f"adv_r_name_{f_idx}_{r_idx}")
+                        room["name"] = val_name
+                    with cf_len:
+                        val_len = st.number_input("L (ft)", min_value=1.0, value=float(room["length"]), step=0.5, key=f"adv_r_len_{f_idx}_{r_idx}")
+                        room["length"] = val_len
+                    with cf_wid:
+                        val_wid = st.number_input("W (ft)", min_value=1.0, value=float(room["width"]), step=0.5, key=f"adv_r_wid_{f_idx}_{r_idx}")
+                        room["width"] = val_wid
+                    with cf_hei:
+                        val_hei = st.number_input("H (ft)", min_value=0.0, value=float(room.get("height", 10.0)), step=0.5, key=f"adv_r_hei_{f_idx}_{r_idx}")
+                        room["height"] = val_hei
+                    with cf_area:
+                        area_val = val_len * val_wid
+                        st.markdown(f"<div style='margin-top:28px; font-weight:600; color:#10B981;'>{area_val:.1f} sqft</div>", unsafe_allow_html=True)
+                    with cf_act:
+                        st.write("")
+                        st.write("")
+                        cad1, cad2 = st.columns(2)
+                        with cad1:
+                            if st.button("👥", key=f"adv_r_dup_{f_idx}_{r_idx}", help="Duplicate"):
+                                adv_duplicate_room(f_idx, r_idx)
+                                st.rerun()
+                        with cad2:
+                            if st.button("🗑️", key=f"adv_r_del_{f_idx}_{r_idx}", help="Delete"):
+                                adv_delete_room(f_idx, r_idx)
+                                st.rerun()
+                                
+                st.write("")
+                col_fl_act1, col_fl_act2 = st.columns(2)
+                with col_fl_act1:
+                    if st.button(f"➕ Add Room to {floor['name']}", key=f"adv_add_room_{f_idx}"):
+                        adv_add_room(f_idx)
+                        st.rerun()
+                with col_fl_act2:
+                    if len(st.session_state.adv_floors) > 1:
+                        if st.button(f"🗑️ Delete Floor {floor['name']}", key=f"adv_del_floor_{f_idx}", type="secondary"):
+                            adv_delete_floor(f_idx)
+                            st.rerun()
+
+        if st.button("➕ Add Floor Block", key="adv_add_floor_block", type="primary"):
+            adv_add_floor()
+            st.rerun()
+
+        # Pre-calculate advanced estimates based on dynamic inputs
+        mat_df, lab_df, mach_df, adv_mat_total, adv_lab_total, adv_mach_total = calculate_advanced_estimates(
+            st.session_state.adv_built_up_area, st.session_state.adv_duration_days, st.session_state.adv_num_floors
+        )
+
+        # Logistics Transport cost
+        adv_trans_cost = max(10.0, st.session_state.adv_built_up_area * 0.00025) * 12000.0
+
+        # ------------------------------------------------------
+        # SECTION C: AUTOMATIC MATERIAL ESTIMATION
+        # ------------------------------------------------------
+        st.write("### 🧱 Material Estimation Table (Section C)")
+
+        # Interactive Slider + Direct Numeric Input Adjuster for 19 Materials
+        with st.expander("🎛️ Interactive Material Multipliers & Rates Adjuster (19 Materials)", expanded=False):
+            st.caption("Adjust exact quantities or rates using synchronized Sliders + Direct Numeric Inputs:")
+            for idx, m in enumerate(MATERIALS_CONFIG):
+                default_qty = round(st.session_state.adv_built_up_area * m["mult"], 1)
+                max_qty = max(default_qty * 3.0, 100.0)
+                step_val = 0.5 if default_qty < 100 else 1.0 if default_qty < 1000 else 10.0
+                
+                adjusted_qty = _render_slider_number_input(
+                    m["name"],
+                    0.0,
+                    max_qty,
+                    default_qty,
+                    step_val,
+                    f"adv_mat_input_{idx}",
+                    m["unit"]
+                )
+                # Override calculated quantity for mat_df row
+                if idx < len(mat_df):
+                    mat_df.at[idx, "Quantity"] = adjusted_qty
+                    mat_df.at[idx, "Estimated Cost"] = round(adjusted_qty * m["rate"], 2)
+
+            adv_mat_total = mat_df["Estimated Cost"].sum()
+
+        mat_rows_list = []
+        for _, r in mat_df.iterrows():
+            badge_class = "adv-status-instock"
+            if r["Status"] == "Ordered": badge_class = "adv-status-ordered"
+            elif r["Status"] == "Scheduled": badge_class = "adv-status-scheduled"
+            elif r["Status"] == "Pending": badge_class = "adv-status-pending"
+
+            mat_rows_list.append(
+                f"<tr><td>{r['Material Name']}</td><td>{r['Quantity']:,.1f}</td><td>{r['Unit']}</td><td>₹{r['Approximate Rate']:,.1f}</td><td>₹{r['Estimated Cost']:,.1f}</td><td><span class='adv-status-badge {badge_class}'>{r['Status']}</span></td><td>{r['Remarks']}</td></tr>"
+            )
+        mat_rows_html = "".join(mat_rows_list)
+
+        st.markdown(
+            f"""
+            <div class="adv-table-wrapper">
+                <table class="adv-custom-table">
+                    <thead>
+                        <tr>
+                            <th>Material Name</th>
+                            <th>Quantity</th>
+                            <th>Unit</th>
+                            <th>Approx. Rate</th>
+                            <th>Estimated Cost</th>
+                            <th>Status</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {mat_rows_html}
+                        <tr style="font-weight: 700; background: rgba(255,255,255,0.03);">
+                            <td colspan="4" style="text-align:right;">Total Material Cost:</td>
+                            <td colspan="3">{_format_inr(adv_mat_total)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # ------------------------------------------------------
+        # SECTION D: LABOUR REQUIREMENTS
+        # ------------------------------------------------------
+        st.write("### 👷 Labour Requirements (Section D)")
+        lab_rows_list = []
+        for _, r in lab_df.iterrows():
+            lab_rows_list.append(
+                f"<tr><td>{r['Role']}</td><td>{r['Workers Required']}</td><td>{r['Estimated Working Days']}</td><td>₹{r['Daily Wage']:,.1f}</td><td>₹{r['Estimated Cost']:,.1f}</td></tr>"
+            )
+        lab_rows_html = "".join(lab_rows_list)
+
+        st.markdown(
+            f"""
+            <div class="adv-table-wrapper">
+                <table class="adv-custom-table">
+                    <thead>
+                        <tr>
+                            <th>Role / Trade</th>
+                            <th>Workers Required</th>
+                            <th>Working Days</th>
+                            <th>Daily Wage</th>
+                            <th>Estimated Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {lab_rows_html}
+                        <tr style="font-weight: 700; background: rgba(255,255,255,0.03);">
+                            <td colspan="4" style="text-align:right;">Total Labour Cost:</td>
+                            <td>{_format_inr(adv_lab_total)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # ------------------------------------------------------
+        # SECTION E: MACHINERY REQUIREMENTS
+        # ------------------------------------------------------
+        st.write("### 🚜 Machinery Sizing & Lease sheet (Section E)")
+        mach_rows_list = []
+        for _, r in mach_df.iterrows():
+            mach_rows_list.append(
+                f"<tr><td>{r['Machine Name']}</td><td>₹{r['Rental Cost']:,.1f}</td><td>{r['Estimated Days']}</td><td>₹{r['Fuel Cost']:,.1f}</td><td>₹{r['Operator Cost']:,.1f}</td><td>₹{r['Maintenance Cost']:,.1f}</td><td>₹{r['Estimated Cost']:,.1f}</td></tr>"
+            )
+        mach_rows_html = "".join(mach_rows_list)
+
+        st.markdown(
+            f"""
+            <div class="adv-table-wrapper">
+                <table class="adv-custom-table">
+                    <thead>
+                        <tr>
+                            <th>Machine Name</th>
+                            <th>Rental Cost</th>
+                            <th>Rental Days</th>
+                            <th>Fuel Cost</th>
+                            <th>Operator Cost</th>
+                            <th>Maintenance</th>
+                            <th>Estimated Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {mach_rows_html}
+                        <tr style="font-weight: 700; background: rgba(255,255,255,0.03);">
+                            <td colspan="6" style="text-align:right;">Total Machinery Cost:</td>
+                            <td>{_format_inr(adv_mach_total)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # Costs Summary calculations for Section F
+        adv_subtotal = adv_mat_total + adv_lab_total + adv_mach_total + adv_trans_cost
+        adv_tax = adv_subtotal * TAX_RATE
+        adv_contingency = adv_subtotal * CONTINGENCY_RATE
+        adv_misc = adv_subtotal * MISC_RATE
+        adv_grand_total = adv_subtotal + adv_tax + adv_contingency + adv_misc
+        adv_cost_per_sqft = adv_grand_total / building_area if building_area > 0 else 0.0
+
+        adv_summary_map = {
+            "Material Cost": adv_mat_total,
+            "Labour Cost": adv_lab_total,
+            "Machinery Cost": adv_mach_total,
+            "Transportation Cost": adv_trans_cost,
+            "Miscellaneous Cost": adv_misc,
+            "Tax Cost": adv_tax,
+            "Contingency Cost": adv_contingency,
+            "Grand Total": adv_grand_total,
+            "Estimated Cost per Sq Ft": adv_cost_per_sqft
+        }
+
+        # ------------------------------------------------------
+        # SECTION F: COST BREAKDOWN
+        # ------------------------------------------------------
+        st.write("### 💰 Financial Breakdown Summary (Section F)")
+        adv_dash_cols = st.columns(4)
+        with adv_dash_cols[0]:
+            render_kpi_card("Material Cost", _format_inr(adv_summary_map["Material Cost"]), "🧱")
+            render_kpi_card("GST Tax (18%)", _format_inr(adv_summary_map["Tax Cost"]), "📋")
+        with adv_dash_cols[1]:
+            render_kpi_card("Labour Cost", _format_inr(adv_summary_map["Labour Cost"]), "👷")
+            render_kpi_card("Contingency (10%)", _format_inr(adv_summary_map["Contingency Cost"]), "🛡️")
+        with adv_dash_cols[2]:
+            render_kpi_card("Machinery Cost", _format_inr(adv_summary_map["Machinery Cost"]), "🚜")
+            render_kpi_card("Miscellaneous (5%)", _format_inr(adv_summary_map["Miscellaneous Cost"]), "📦")
+        with adv_dash_cols[3]:
+            render_kpi_card("Transportation", _format_inr(adv_summary_map["Transportation Cost"]), "🚛")
+            adv_rem_budget = st.session_state.adv_budget_limit - adv_grand_total
+            budget_badge_color = "#22C55E" if adv_rem_budget >= 0 else "#EF4444"
+            render_kpi_card("Remaining Budget", _format_inr(adv_rem_budget), "💵", delta_color=budget_badge_color)
+
+        # Central glow cards
+        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+        bottom_adv_cols = st.columns(2)
+        with bottom_adv_cols[0]:
+            st.markdown(
+                f"""
+                <div class="cih-kpi-card" style="text-align:center; animation: pulseGlow 2.5s infinite;">
+                    <div class="cih-kpi-label">Grand Total Cost</div>
+                    <div class="cih-kpi-value" style="font-size:2.1rem; color:#10B981;">{_format_inr(adv_summary_map['Grand Total'])}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with bottom_adv_cols[1]:
+            st.markdown(
+                f"""
+                <div class="cih-kpi-card" style="text-align:center; animation: pulseGlow 2.5s infinite;">
+                    <div class="cih-kpi-label">Cost per Square Foot</div>
+                    <div class="cih-kpi-value" style="font-size:2rem; color:#3B82F6;">{_format_inr(adv_summary_map['Estimated Cost per Sq Ft'])}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        # ------------------------------------------------------
+        # SECTION G: VISUAL ANALYTICS
+        # ------------------------------------------------------
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.write("### 📊 Workspace Analytics (Section G)")
+        adv_ch_col1, adv_ch_col2 = st.columns(2)
+        with adv_ch_col1:
+            # 1. Material Distribution
+            top_mats_adv = mat_df.nlargest(6, "Estimated Cost")
+            oth_cost_adv = mat_df["Estimated Cost"].sum() - top_mats_adv["Estimated Cost"].sum()
+            if oth_cost_adv > 0:
+                oth_row_adv = pd.DataFrame([{"Material Name": "Others", "Estimated Cost": oth_cost_adv}])
+                mat_chart_adv = pd.concat([top_mats_adv, oth_row_adv])
+            else:
+                mat_chart_adv = top_mats_adv
+            
+            fig_mat_adv = px.pie(
+                mat_chart_adv, values="Estimated Cost", names="Material Name",
+                color_discrete_sequence=charts.COLORS, hole=0.35
+            )
+            charts._apply_layout(fig_mat_adv, "Material Cost Distribution", 350)
+            st.plotly_chart(fig_mat_adv, use_container_width=True)
+
+            # 3. Machinery Distribution
+            fig_mach_adv = px.bar(
+                mach_df, x="Estimated Cost", y="Machine Name", orientation="h",
+                color="Estimated Cost", color_continuous_scale=["#8B5CF6", "#A78BFA", "#C4B5FD"]
+            )
+            fig_mach_adv.update_coloraxes(showscale=False)
+            charts._apply_layout(fig_mach_adv, "Machinery Lease Allocations", 350)
+            st.plotly_chart(fig_mach_adv, use_container_width=True)
+
+        with adv_ch_col2:
+            # 2. Labour Cost
+            fig_lab_adv = px.bar(
+                lab_df, x="Role", y="Estimated Cost", color="Estimated Cost",
+                color_continuous_scale=["#1E40AF", "#3B82F6", "#60A5FA"]
+            )
+            fig_lab_adv.update_coloraxes(showscale=False)
+            charts._apply_layout(fig_lab_adv, "Labour Trade Expenses", 350)
+            st.plotly_chart(fig_lab_adv, use_container_width=True)
+
+            # 4. Budget Allocation
+            adv_cats_alloc = ["Materials", "Labour", "Machinery", "Transportation", "GST Tax", "Contingency", "Miscellaneous"]
+            adv_vals_alloc = [
+                adv_mat_total, adv_lab_total, adv_mach_total, adv_trans_cost, adv_tax, adv_contingency, adv_misc
+            ]
+            budget_alloc_df = pd.DataFrame({"Category": adv_cats_alloc, "Allocation": adv_vals_alloc})
+            fig_budget_adv = px.pie(
+                budget_alloc_df, values="Allocation", names="Category",
+                color_discrete_sequence=charts.COLORS, hole=0.45
+            )
+            charts._apply_layout(fig_budget_adv, "Overall Project Budget Split", 350)
+            st.plotly_chart(fig_budget_adv, use_container_width=True)
+
+        # Export logic setup
+        adv_proj_info_dict = {
+            "Project Name": st.session_state.adv_project_name,
+            "Project ID": st.session_state.adv_project_id,
+            "Client Name": st.session_state.adv_client_name,
+            "Project Location": st.session_state.adv_project_location,
+            "Construction Type": st.session_state.adv_construction_type,
+            "Building Category": st.session_state.adv_building_category,
+            "Number of Floors": st.session_state.adv_num_floors,
+            "Total Plot Area (sq ft)": st.session_state.adv_plot_area,
+            "Built-up Area (sq ft)": st.session_state.adv_built_up_area,
+            "Duration (Days)": st.session_state.adv_duration_days,
+            "Budget Limit": st.session_state.adv_budget_limit
+        }
+
+        # Download document option at bottom of workspace
+        excel_data_adv = generate_excel_bytes_v2(adv_proj_info_dict, mat_df, lab_df, mach_df, adv_summary_map)
+        st.download_button(
+            label="📥 Export Excel Estimate (.xlsx)",
+            data=excel_data_adv,
+            file_name=f"Advanced_Cost_Estimate_{st.session_state.adv_project_id}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="adv_download_excel"
+        )
+
+    # Compile Context payload for AI advisor
+    advisor_context_str = compile_adv_context_v2(
+        {
+            "name": st.session_state.adv_project_name,
+            "id": st.session_state.adv_project_id,
+            "client": st.session_state.adv_client_name,
+            "location": st.session_state.adv_project_location,
+            "type": st.session_state.adv_construction_type,
+            "category": st.session_state.adv_building_category,
+            "floors": st.session_state.adv_num_floors,
+            "timeline": st.session_state.adv_duration_days,
+            "built_up_area": st.session_state.adv_built_up_area
+        },
+        st.session_state.adv_floors,
+        mat_df,
+        lab_df,
+        mach_df,
+        adv_summary_map
+    )
+
+    # ------------------------------------------------------
+    # SECTION H: AI CONSTRUCTION ADVISOR (Embedded Right Side Panel)
+    # ------------------------------------------------------
+    with col_ai:
+        st.markdown(
+            """
+            <div class="cih-glass-card" style="margin-bottom: 8px;">
+                <div class="cih-card-title">🤖 AI Construction Advisor (Section H)</div>
+                <p style="margin: 0; font-size: 0.75rem; color: #94A3B8;">Dedicated workspace consultant panel</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        
+        # Interactive chat history container
+        chat_container = st.container(height=420)
+        with chat_container:
+            for msg in st.session_state.adv_chat_history:
+                with st.chat_message(msg["role"]):
+                    st.markdown(msg["content"])
+                    
+        # Quick inquiries prompt chips
+        st.markdown("<p style='font-size:0.7rem; font-weight:600; color:#64748B; margin:8px 0 4px 0;'>QUICK ESTIMATOR INQUIRIES</p>", unsafe_allow_html=True)
+        c_chip1, c_chip2 = st.columns(2)
+        with c_chip1:
+            if st.button("📊 Bill of Quantities", key="chip_boq", use_container_width=True):
+                st.session_state.adv_chat_input = "Generate a basic Bill of Quantities (BOQ)"
+                st.session_state.adv_chat_trigger = True
+            if st.button("💸 Reduce Budget", key="chip_reduce", use_container_width=True):
+                st.session_state.adv_chat_input = "Suggest ways to reduce the overall budget"
+                st.session_state.adv_chat_trigger = True
+        with c_chip2:
+            if st.button("⚖️ Cheaper Materials", key="chip_cheaper", use_container_width=True):
+                st.session_state.adv_chat_input = "Suggest alternative cheaper materials"
+                st.session_state.adv_chat_trigger = True
+            if st.button("🚨 Risk Analysis", key="chip_risk", use_container_width=True):
+                st.session_state.adv_chat_input = "Identify potential cost risks"
+                st.session_state.adv_chat_trigger = True
+                
+        # Text query input and send button
+        user_query = st.text_input("Ask a question about this cost configuration...", key="adv_chat_input_text", value=st.session_state.get("adv_chat_input", ""))
+        
+        if st.button("💬 Send to AI Advisor", key="adv_send_query_btn", use_container_width=True, type="primary") or st.session_state.get("adv_chat_trigger", False):
+            query_to_send = user_query if not st.session_state.get("adv_chat_trigger", False) else st.session_state.adv_chat_input
+            st.session_state.adv_chat_input = "" # Reset
+            st.session_state.adv_chat_trigger = False # Reset
+            
+            if query_to_send.strip():
+                # Add user query
+                st.session_state.adv_chat_history.append({"role": "user", "content": query_to_send})
+                
+                with st.spinner("Advisor analyzing project data..."):
+                    try:
+                        # 1. Format history messages for LLM
+                        history_msgs = [{"role": m["role"], "content": m["content"]} for m in st.session_state.adv_chat_history[:-1]]
+                        # 2. Query Ollama insights
+                        reply_text = ollama_service.insights(query_to_send, history_msgs, advisor_context_str)
+                    except Exception as e:
+                        # 3. Fallback to local Python simulated advisor
+                        reply_text = generate_python_simulated_response(query_to_send, advisor_context_str)
+                        
+                st.session_state.adv_chat_history.append({"role": "assistant", "content": reply_text})
+                st.rerun()
+                
+        if st.button("🔄 Reset Consultant Conversation", key="adv_reset_chat_btn", use_container_width=True):
+            st.session_state.adv_chat_history = [{
+                "role": "assistant",
+                "content": "Welcome to your embedded Construction Estimator AI Advisor. I have parsed your active building layouts, material totals, and machinery rental schedule. Ask me any queries about cost-savings, timelines, or BOQs!"
+            }]
+            st.rerun()
+
+
 def render() -> None:
     """Render cost estimation navigation portal."""
-    
-    # Render two top-level navigation tabs
     tab_basic, tab_construction = st.tabs(["Basic Cost Estimation", "Construction Estimator"])
-
-    # ------------------------------------------------------
-    # TAB 1: BASIC COST ESTIMATION (Restored verbatim)
-    # ------------------------------------------------------
     with tab_basic:
-        # Script block to ensure the global floating assistant widget is shown
-        st.markdown(
-            """
-            <script>
-            (function() {
-                const hostDoc = window.parent.document || document;
-                const rootNode = hostDoc.getElementById("cih-assistant-root");
-                if (rootNode) {
-                    rootNode.style.display = "block";
-                }
-            })();
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
-
-        render_page_header("Cost Estimation", "Enterprise-grade construction cost calculator")
-
-        col_input, col_output = st.columns([1, 1])
-
-        with col_input:
-            st.markdown(
-                """
-                <div class="cih-glass-card">
-                    <div class="cih-card-title">📝 Cost Input Parameters</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            st.markdown("**Materials (Slider + Exact Input)**")
-            steel = _render_slider_number_input("Steel", 0.0, 500.0, 50.0, 0.5, "basic_steel", "Tons")
-            cement = _render_slider_number_input("Cement", 0.0, 20000.0, 2000.0, 10.0, "basic_cement", "Bags")
-            bricks = _render_slider_number_input("Bricks", 0.0, 500000.0, 50000.0, 100.0, "basic_bricks", "Units")
-            sand = _render_slider_number_input("Sand", 0.0, 2000.0, 150.0, 1.0, "basic_sand", "Cu.M")
-
-            st.markdown("**Resources (Slider + Exact Input)**")
-            labour = _render_slider_number_input("Labour", 0.0, 1000.0, 120.0, 1.0, "basic_labour", "Days")
-            machinery = _render_slider_number_input("Machinery", 0.0, 500.0, 45.0, 1.0, "basic_machinery", "Days")
-            transportation = _render_slider_number_input("Transportation", 0.0, 300.0, 30.0, 1.0, "basic_transportation", "Trips")
-
-            calculate = st.button("🔢 Calculate Estimate", use_container_width=True, type="primary", key="basic_calc")
-
-        inputs = {
-            "steel": steel, "cement": cement, "bricks": bricks, "sand": sand,
-            "labour": labour, "machinery": machinery, "transportation": transportation,
-        }
-        costs = _calculate_costs(inputs)
-
-        with col_output:
-            st.markdown(
-                """
-                <div class="cih-glass-card">
-                    <div class="cih-card-title">💰 Cost Summary</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            summary_cols = st.columns(2)
-            with summary_cols[0]:
-                render_kpi_card("Material Cost", _format_inr(costs["material_cost"]), "🧱")
-            with summary_cols[1]:
-                render_kpi_card("Labour & Ops", _format_inr(costs["labour_cost"]), "👷")
-
-            summary_cols2 = st.columns(2)
-            with summary_cols2[0]:
-                render_kpi_card("Tax (18% GST)", _format_inr(costs["tax"]), "📋")
-            with summary_cols2[1]:
-                render_kpi_card("Contingency (10%)", _format_inr(costs["contingency"]), "🛡️")
-
-            st.markdown(
-                f"""
-                <div class="cih-kpi-card" style="text-align:center; margin-top:1rem; animation: pulseGlow 2s infinite;">
-                    <div class="cih-kpi-label">Grand Total</div>
-                    <div class="cih-kpi-value" style="font-size:2.5rem; color:#3B82F6;">{_format_inr(costs['grand_total'])}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            if calculate:
-                st.success("✅ Cost estimate calculated successfully!")
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        chart_col1, chart_col2 = st.columns(2)
-        with chart_col1:
-            fig = charts.create_cost_breakdown_chart(
-                costs["material_cost"], costs["labour_cost"], costs["tax"], costs["contingency"],
-            )
-            st.plotly_chart(fig, use_container_width=True)
-
-        with chart_col2:
-            st.markdown(
-                f"""
-                <div class="cih-glass-card">
-                    <div class="cih-card-title">📊 Rate Reference</div>
-                    <div class="cih-metric-row"><span class="cih-metric-label">Steel</span><span class="cih-metric-value">₹68,000/ton</span></div>
-                    <div class="cih-metric-row"><span class="cih-metric-label">Cement</span><span class="cih-metric-value">₹380/bag</span></div>
-                    <div class="cih-metric-row"><span class="cih-metric-label">Bricks</span><span class="cih-metric-value">₹8.5/unit</span></div>
-                    <div class="cih-metric-row"><span class="cih-metric-label">Sand</span><span class="cih-metric-value">₹4,500/cu.m</span></div>
-                    <div class="cih-metric-row"><span class="cih-metric-label">Labour</span><span class="cih-metric-value">₹850/day</span></div>
-                    <div class="cih-metric-row"><span class="cih-metric-label">Machinery</span><span class="cih-metric-value">₹15,000/day</span></div>
-                    <div class="cih-metric-row"><span class="cih-metric-label">Transport</span><span class="cih-metric-value">₹12,000/trip</span></div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-    # ------------------------------------------------------
-    # TAB 2: CONSTRUCTION ESTIMATOR (Section A-H Advanced Page)
-    # ------------------------------------------------------
+        render_basic_cost_estimator()
     with tab_construction:
-        # Script block to ensure the global floating assistant widget is hidden
-        st.markdown(
-            """
-            <script>
-            (function() {
-                const hostDoc = window.parent.document || document;
-                const rootNode = hostDoc.getElementById("cih-assistant-root");
-                if (rootNode) {
-                    rootNode.style.display = "none";
-                }
-            })();
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
+        render_construction_cost_estimator()
 
-        # Injected styles for advanced estimator workspace
-        st.markdown(
-            """
-            <style>
-            .adv-workspace-title {
-                font-family: 'Outfit', sans-serif;
-                font-weight: 700;
-                color: #FFFFFF;
-                font-size: 1.6rem;
-                margin-bottom: 0.5rem;
-            }
-            .adv-glass-container {
-                background: rgba(15, 23, 42, 0.45);
-                backdrop-filter: blur(16px);
-                border: 1px solid rgba(255,255,255,0.06);
-                border-radius: 16px;
-                padding: 1.25rem;
-                margin-bottom: 1.5rem;
-            }
-            .adv-table-wrapper {
-                background: rgba(255, 255, 255, 0.02);
-                border: 1px solid rgba(255, 255, 255, 0.07);
-                border-radius: 12px;
-                padding: 12px;
-                margin-bottom: 20px;
-                overflow-x: auto;
-            }
-            .adv-custom-table {
-                width: 100%;
-                border-collapse: collapse;
-                color: #E2E8F0;
-                font-size: 0.85rem;
-            }
-            .adv-custom-table th {
-                background: rgba(255, 255, 255, 0.04);
-                border-bottom: 2px solid rgba(255, 255, 255, 0.08);
-                color: #94A3B8;
-                text-align: left;
-                padding: 10px 12px;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.03em;
-            }
-            .adv-custom-table td {
-                padding: 10px 12px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            }
-            .adv-custom-table tr:hover {
-                background: rgba(255, 255, 255, 0.015);
-            }
-            .adv-custom-table tr:last-child td {
-                border-bottom: none;
-            }
-            .adv-status-badge {
-                padding: 2px 6px;
-                border-radius: 4px;
-                font-size: 0.72rem;
-                font-weight: 600;
-            }
-            .adv-status-instock { background: rgba(34, 197, 94, 0.15); color: #4ADE80; border: 1px solid rgba(34, 197, 94, 0.25); }
-            .adv-status-ordered { background: rgba(59, 130, 246, 0.15); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.25); }
-            .adv-status-scheduled { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.25); }
-            .adv-status-pending { background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.25); }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # Initialize State Variables
-        if "adv_project_name" not in st.session_state:
-            st.session_state.adv_project_name = "Downtown Plaza Tower A"
-        if "adv_project_id" not in st.session_state:
-            st.session_state.adv_project_id = "PRJ-2026-DPTA"
-        if "adv_client_name" not in st.session_state:
-            st.session_state.adv_client_name = "Vertex Holdings Group"
-        if "adv_project_location" not in st.session_state:
-            st.session_state.adv_project_location = "Sector 62, Noida, India"
-        if "adv_construction_type" not in st.session_state:
-            st.session_state.adv_construction_type = "Commercial"
-        if "adv_building_category" not in st.session_state:
-            st.session_state.adv_building_category = "High Rise"
-        if "adv_num_floors" not in st.session_state:
-            st.session_state.adv_num_floors = 12
-        if "adv_duration_days" not in st.session_state:
-            st.session_state.adv_duration_days = 540
-        if "adv_plot_area" not in st.session_state:
-            st.session_state.adv_plot_area = 15000.0
-        if "adv_built_up_area" not in st.session_state:
-            st.session_state.adv_built_up_area = 120000.0
-        if "adv_budget_limit" not in st.session_state:
-            st.session_state.adv_budget_limit = 150000000.0
-        if "adv_chat_history" not in st.session_state:
-            st.session_state.adv_chat_history = [
-                {
-                    "role": "assistant",
-                    "content": "Welcome to your embedded Construction Estimator AI Advisor. I have parsed your active building layouts, material totals, and machinery rental schedule. Ask me any queries about cost-savings, timelines, or BOQs!"
-                }
-            ]
-        if "adv_floors" not in st.session_state:
-            st.session_state.adv_floors = [
-                {
-                    "name": "Ground Floor",
-                    "rooms": [
-                        {"name": "Reception Lobby", "type": "Custom", "length": 30.0, "width": 20.0, "height": 12.0},
-                        {"name": "Manager Office", "type": "Office", "length": 15.0, "width": 12.0, "height": 10.0},
-                        {"name": "Conference Room", "type": "Custom", "length": 25.0, "width": 15.0, "height": 10.0},
-                        {"name": "Cafeteria", "type": "Dining", "length": 20.0, "width": 15.0, "height": 10.0},
-                        {"name": "Restroom A", "type": "Bathroom", "length": 10.0, "width": 8.0, "height": 10.0},
-                    ]
-                },
-                {
-                    "name": "First Floor",
-                    "rooms": [
-                        {"name": "Open Workstation", "type": "Office", "length": 40.0, "width": 25.0, "height": 10.0},
-                        {"name": "Pantry Room", "type": "Kitchen", "length": 12.0, "width": 10.0, "height": 10.0},
-                        {"name": "Restroom B", "type": "Bathroom", "length": 10.0, "width": 8.0, "height": 10.0},
-                        {"name": "Server Room", "type": "Store", "length": 15.0, "width": 10.0, "height": 10.0},
-                    ]
-                }
-            ]
-
-        # Division of Layout into Workspace and AI Advisor Column
-        col_workspace, col_ai = st.columns([2.1, 1.0])
-
-        with col_workspace:
-            st.markdown('<div class="adv-workspace-title">🏗️ Enterprise Construction Estimator</div>', unsafe_allow_html=True)
-            st.markdown("<p style='color:#64748B; margin-top:-5px; font-size:0.85rem; margin-bottom:15px;'>Professional workspace for structural configs, detailed estimations, and documentation exports.</p>", unsafe_allow_html=True)
-
-            # ------------------------------------------------------
-            # SECTION A: PROJECT DETAILS
-            # ------------------------------------------------------
-            with st.container():
-                st.markdown(
-                    """
-                    <div class="cih-glass-card">
-                        <div class="cih-card-title">📝 Project Profiling (Section A)</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-                
-                ap_name = st.text_input("Project Name", value=st.session_state.adv_project_name, key="adv_pname_in")
-                st.session_state.adv_project_name = ap_name
-
-                col_a1, col_a2 = st.columns(2)
-                with col_a1:
-                    ap_id = st.text_input("Project ID", value=st.session_state.adv_project_id, key="adv_pid_in")
-                    st.session_state.adv_project_id = ap_id
-                    a_client = st.text_input("Client", value=st.session_state.adv_client_name, key="adv_client_in")
-                    st.session_state.adv_client_name = a_client
-                    a_budget = st.number_input("Budget Limit (₹)", min_value=0.0, value=st.session_state.adv_budget_limit, step=1000000.0, key="adv_budget_in")
-                    st.session_state.adv_budget_limit = a_budget
-                with col_a2:
-                    ap_loc = st.text_input("Location", value=st.session_state.adv_project_location, key="adv_loc_in")
-                    st.session_state.adv_project_location = ap_loc
-                    a_duration = st.number_input("Expected Timeline (Days)", min_value=10, value=int(st.session_state.adv_duration_days), step=5, key="adv_duration_in")
-                    st.session_state.adv_duration_days = a_duration
-                    a_plot = st.number_input("Total Plot Area (sq ft)", min_value=10.0, value=float(st.session_state.adv_plot_area), step=100.0, key="adv_plot_in")
-                    st.session_state.adv_plot_area = a_plot
-
-                col_a3, col_a4 = st.columns(2)
-                with col_a3:
-                    adv_c_types = ["Residential", "Commercial", "Industrial", "Hospital", "Apartment", "Villa", "School"]
-                    adv_c_idx = adv_c_types.index(st.session_state.adv_construction_type) if st.session_state.adv_construction_type in adv_c_types else 0
-                    ap_type = st.selectbox("Construction Type", adv_c_types, index=adv_c_idx, key="adv_type_sel")
-                    st.session_state.adv_construction_type = ap_type
-                with col_a4:
-                    adv_b_cats = ["Single Floor", "Duplex", "Multi Floor", "High Rise"]
-                    adv_b_idx = adv_b_cats.index(st.session_state.adv_building_category) if st.session_state.adv_building_category in adv_b_cats else 0
-                    ap_cat = st.selectbox("Building Category", adv_b_cats, index=adv_b_idx, key="adv_cat_sel")
-                    st.session_state.adv_building_category = ap_cat
-
-                ap_floors = st.number_input("Number of Floors", min_value=1, value=int(st.session_state.adv_num_floors), step=1, key="adv_floors_in")
-                st.session_state.adv_num_floors = ap_floors
-
-            # ------------------------------------------------------
-            # SECTION B: FLOOR BUILDER
-            # ------------------------------------------------------
-            st.markdown(
-                """
-                <div class="cih-glass-card">
-                    <div class="cih-card-title">🏢 Floor & Room Configurator (Section B)</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            # Compute dynamic area values
-            building_area = 0.0
-            for f_idx, floor in enumerate(st.session_state.adv_floors):
-                fl_area = sum(r["length"] * r["width"] for r in floor["rooms"])
-                building_area += fl_area
-
-            # Update built-up area
-            st.session_state.adv_built_up_area = building_area
-
-            st.write(f"**Total Floors Structured: {len(st.session_state.adv_floors)} | Total Built-up Area: {building_area:,.2f} sq ft**")
-
-            for f_idx, floor in enumerate(st.session_state.adv_floors):
-                fl_area = sum(r["length"] * r["width"] for r in floor["rooms"])
-                
-                with st.expander(f"🏢 {floor['name']} — (Area: {fl_area:,.1f} sq ft)", expanded=(f_idx == 0)):
-                    new_fname = st.text_input("Floor Title", value=floor["name"], key=f"adv_fname_{f_idx}")
-                    if new_fname != floor["name"]:
-                        floor["name"] = new_fname
-                        st.rerun()
-
-                    rooms = floor["rooms"]
-                    for r_idx, room in enumerate(rooms):
-                        st.markdown(f"**Room #{r_idx + 1}**")
-                        cf_type, cf_name, cf_len, cf_wid, cf_hei, cf_area, cf_act = st.columns([1.8, 1.8, 1.0, 1.0, 1.0, 1.2, 1.2])
-                        
-                        with cf_type:
-                            adv_r_types = ["Bedroom", "Kitchen", "Hall", "Dining", "Bathroom", "Office", "Garage", "Balcony", "Study", "Store", "Utility", "Custom"]
-                            r_idx_t = adv_r_types.index(room["type"]) if room["type"] in adv_r_types else 0
-                            sel_type = st.selectbox("Type", adv_r_types, index=r_idx_t, key=f"adv_r_type_{f_idx}_{r_idx}")
-                            room["type"] = sel_type
-                        with cf_name:
-                            val_name = st.text_input("Name", value=room["name"], key=f"adv_r_name_{f_idx}_{r_idx}")
-                            room["name"] = val_name
-                        with cf_len:
-                            val_len = st.number_input("L (ft)", min_value=1.0, value=float(room["length"]), step=0.5, key=f"adv_r_len_{f_idx}_{r_idx}")
-                            room["length"] = val_len
-                        with cf_wid:
-                            val_wid = st.number_input("W (ft)", min_value=1.0, value=float(room["width"]), step=0.5, key=f"adv_r_wid_{f_idx}_{r_idx}")
-                            room["width"] = val_wid
-                        with cf_hei:
-                            val_hei = st.number_input("H (ft)", min_value=0.0, value=float(room.get("height", 10.0)), step=0.5, key=f"adv_r_hei_{f_idx}_{r_idx}")
-                            room["height"] = val_hei
-                        with cf_area:
-                            area_val = val_len * val_wid
-                            st.markdown(f"<div style='margin-top:28px; font-weight:600; color:#10B981;'>{area_val:.1f} sqft</div>", unsafe_allow_html=True)
-                        with cf_act:
-                            st.write("")
-                            st.write("")
-                            cad1, cad2 = st.columns(2)
-                            with cad1:
-                                if st.button("👥", key=f"adv_r_dup_{f_idx}_{r_idx}", help="Duplicate"):
-                                    adv_duplicate_room(f_idx, r_idx)
-                                    st.rerun()
-                            with cad2:
-                                if st.button("🗑️", key=f"adv_r_del_{f_idx}_{r_idx}", help="Delete"):
-                                    adv_delete_room(f_idx, r_idx)
-                                    st.rerun()
-                                    
-                    st.write("")
-                    col_fl_act1, col_fl_act2 = st.columns(2)
-                    with col_fl_act1:
-                        if st.button(f"➕ Add Room to {floor['name']}", key=f"adv_add_room_{f_idx}"):
-                            adv_add_room(f_idx)
-                            st.rerun()
-                    with col_fl_act2:
-                        if len(st.session_state.adv_floors) > 1:
-                            if st.button(f"🗑️ Delete Floor {floor['name']}", key=f"adv_del_floor_{f_idx}", type="secondary"):
-                                adv_delete_floor(f_idx)
-                                st.rerun()
-
-            if st.button("➕ Add Floor Block", key="adv_add_floor_block", type="primary"):
-                adv_add_floor()
-                st.rerun()
-
-            # Pre-calculate advanced estimates based on dynamic inputs
-            mat_df, lab_df, mach_df, adv_mat_total, adv_lab_total, adv_mach_total = calculate_advanced_estimates(
-                st.session_state.adv_built_up_area, st.session_state.adv_duration_days, st.session_state.adv_num_floors
-            )
-
-            # Logistics Transport cost
-            adv_trans_cost = max(10.0, st.session_state.adv_built_up_area * 0.00025) * 12000.0
-
-            # ------------------------------------------------------
-            # SECTION C: AUTOMATIC MATERIAL ESTIMATION
-            # ------------------------------------------------------
-            st.write("### 🧱 Material Estimation Table (Section C)")
-
-            # Interactive Slider + Direct Numeric Input Adjuster for 19 Materials
-            with st.expander("🎛️ Interactive Material Multipliers & Rates Adjuster (19 Materials)", expanded=False):
-                st.caption("Adjust exact quantities or rates using synchronized Sliders + Direct Numeric Inputs:")
-                for idx, m in enumerate(MATERIALS_CONFIG):
-                    default_qty = round(st.session_state.adv_built_up_area * m["mult"], 1)
-                    max_qty = max(default_qty * 3.0, 100.0)
-                    step_val = 0.5 if default_qty < 100 else 1.0 if default_qty < 1000 else 10.0
-                    
-                    adjusted_qty = _render_slider_number_input(
-                        m["name"],
-                        0.0,
-                        max_qty,
-                        default_qty,
-                        step_val,
-                        f"adv_mat_input_{idx}",
-                        m["unit"]
-                    )
-                    # Override calculated quantity for mat_df row
-                    if idx < len(mat_df):
-                        mat_df.at[idx, "Quantity"] = adjusted_qty
-                        mat_df.at[idx, "Estimated Cost"] = round(adjusted_qty * m["rate"], 2)
-
-                adv_mat_total = mat_df["Estimated Cost"].sum()
-
-            mat_rows_list = []
-            for _, r in mat_df.iterrows():
-                badge_class = "adv-status-instock"
-                if r["Status"] == "Ordered": badge_class = "adv-status-ordered"
-                elif r["Status"] == "Scheduled": badge_class = "adv-status-scheduled"
-                elif r["Status"] == "Pending": badge_class = "adv-status-pending"
-
-                mat_rows_list.append(
-                    f"<tr><td>{r['Material Name']}</td><td>{r['Quantity']:,.1f}</td><td>{r['Unit']}</td><td>₹{r['Approximate Rate']:,.1f}</td><td>₹{r['Estimated Cost']:,.1f}</td><td><span class='adv-status-badge {badge_class}'>{r['Status']}</span></td><td>{r['Remarks']}</td></tr>"
-                )
-            mat_rows_html = "".join(mat_rows_list)
-
-            st.markdown(
-                f"""
-                <div class="adv-table-wrapper">
-                    <table class="adv-custom-table">
-                        <thead>
-                            <tr>
-                                <th>Material Name</th>
-                                <th>Quantity</th>
-                                <th>Unit</th>
-                                <th>Approx. Rate</th>
-                                <th>Estimated Cost</th>
-                                <th>Status</th>
-                                <th>Remarks</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {mat_rows_html}
-                            <tr style="font-weight: 700; background: rgba(255,255,255,0.03);">
-                                <td colspan="4" style="text-align:right;">Total Material Cost:</td>
-                                <td colspan="3">{_format_inr(adv_mat_total)}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            # ------------------------------------------------------
-            # SECTION D: LABOUR REQUIREMENTS
-            # ------------------------------------------------------
-            st.write("### 👷 Labour Requirements (Section D)")
-            lab_rows_list = []
-            for _, r in lab_df.iterrows():
-                lab_rows_list.append(
-                    f"<tr><td>{r['Role']}</td><td>{r['Workers Required']}</td><td>{r['Estimated Working Days']}</td><td>₹{r['Daily Wage']:,.1f}</td><td>₹{r['Estimated Cost']:,.1f}</td></tr>"
-                )
-            lab_rows_html = "".join(lab_rows_list)
-
-            st.markdown(
-                f"""
-                <div class="adv-table-wrapper">
-                    <table class="adv-custom-table">
-                        <thead>
-                            <tr>
-                                <th>Role / Trade</th>
-                                <th>Workers Required</th>
-                                <th>Working Days</th>
-                                <th>Daily Wage</th>
-                                <th>Estimated Cost</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {lab_rows_html}
-                            <tr style="font-weight: 700; background: rgba(255,255,255,0.03);">
-                                <td colspan="4" style="text-align:right;">Total Labour Cost:</td>
-                                <td>{_format_inr(adv_lab_total)}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            # ------------------------------------------------------
-            # SECTION E: MACHINERY REQUIREMENTS
-            # ------------------------------------------------------
-            st.write("### 🚜 Machinery Sizing & Lease sheet (Section E)")
-            mach_rows_list = []
-            for _, r in mach_df.iterrows():
-                mach_rows_list.append(
-                    f"<tr><td>{r['Machine Name']}</td><td>₹{r['Rental Cost']:,.1f}</td><td>{r['Estimated Days']}</td><td>₹{r['Fuel Cost']:,.1f}</td><td>₹{r['Operator Cost']:,.1f}</td><td>₹{r['Maintenance Cost']:,.1f}</td><td>₹{r['Estimated Cost']:,.1f}</td></tr>"
-                )
-            mach_rows_html = "".join(mach_rows_list)
-
-            st.markdown(
-                f"""
-                <div class="adv-table-wrapper">
-                    <table class="adv-custom-table">
-                        <thead>
-                            <tr>
-                                <th>Machine Name</th>
-                                <th>Rental Cost</th>
-                                <th>Rental Days</th>
-                                <th>Fuel Cost</th>
-                                <th>Operator Cost</th>
-                                <th>Maintenance</th>
-                                <th>Estimated Cost</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {mach_rows_html}
-                            <tr style="font-weight: 700; background: rgba(255,255,255,0.03);">
-                                <td colspan="6" style="text-align:right;">Total Machinery Cost:</td>
-                                <td>{_format_inr(adv_mach_total)}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            # Costs Summary calculations for Section F
-            adv_subtotal = adv_mat_total + adv_lab_total + adv_mach_total + adv_trans_cost
-            adv_tax = adv_subtotal * TAX_RATE
-            adv_contingency = adv_subtotal * CONTINGENCY_RATE
-            adv_misc = adv_subtotal * MISC_RATE
-            adv_grand_total = adv_subtotal + adv_tax + adv_contingency + adv_misc
-            adv_cost_per_sqft = adv_grand_total / building_area if building_area > 0 else 0.0
-
-            adv_summary_map = {
-                "Material Cost": adv_mat_total,
-                "Labour Cost": adv_lab_total,
-                "Machinery Cost": adv_mach_total,
-                "Transportation Cost": adv_trans_cost,
-                "Miscellaneous Cost": adv_misc,
-                "Tax Cost": adv_tax,
-                "Contingency Cost": adv_contingency,
-                "Grand Total": adv_grand_total,
-                "Estimated Cost per Sq Ft": adv_cost_per_sqft
-            }
-
-            # ------------------------------------------------------
-            # SECTION F: COST BREAKDOWN
-            # ------------------------------------------------------
-            st.write("### 💰 Financial Breakdown Summary (Section F)")
-            adv_dash_cols = st.columns(4)
-            with adv_dash_cols[0]:
-                render_kpi_card("Material Cost", _format_inr(adv_summary_map["Material Cost"]), "🧱")
-                render_kpi_card("GST Tax (18%)", _format_inr(adv_summary_map["Tax Cost"]), "📋")
-            with adv_dash_cols[1]:
-                render_kpi_card("Labour Cost", _format_inr(adv_summary_map["Labour Cost"]), "👷")
-                render_kpi_card("Contingency (10%)", _format_inr(adv_summary_map["Contingency Cost"]), "🛡️")
-            with adv_dash_cols[2]:
-                render_kpi_card("Machinery Cost", _format_inr(adv_summary_map["Machinery Cost"]), "🚜")
-                render_kpi_card("Miscellaneous (5%)", _format_inr(adv_summary_map["Miscellaneous Cost"]), "📦")
-            with adv_dash_cols[3]:
-                render_kpi_card("Transportation", _format_inr(adv_summary_map["Transportation Cost"]), "🚛")
-                adv_rem_budget = st.session_state.adv_budget_limit - adv_grand_total
-                budget_badge_color = "#22C55E" if adv_rem_budget >= 0 else "#EF4444"
-                render_kpi_card("Remaining Budget", _format_inr(adv_rem_budget), "💵", delta_color=budget_badge_color)
-
-            # Central glow cards
-            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            bottom_adv_cols = st.columns(2)
-            with bottom_adv_cols[0]:
-                st.markdown(
-                    f"""
-                    <div class="cih-kpi-card" style="text-align:center; animation: pulseGlow 2.5s infinite;">
-                        <div class="cih-kpi-label">Grand Total Cost</div>
-                        <div class="cih-kpi-value" style="font-size:2.1rem; color:#10B981;">{_format_inr(adv_summary_map['Grand Total'])}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-            with bottom_adv_cols[1]:
-                st.markdown(
-                    f"""
-                    <div class="cih-kpi-card" style="text-align:center; animation: pulseGlow 2.5s infinite;">
-                        <div class="cih-kpi-label">Cost per Square Foot</div>
-                        <div class="cih-kpi-value" style="font-size:2rem; color:#3B82F6;">{_format_inr(adv_summary_map['Estimated Cost per Sq Ft'])}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-
-            # ------------------------------------------------------
-            # SECTION G: VISUAL ANALYTICS
-            # ------------------------------------------------------
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.write("### 📊 Workspace Analytics (Section G)")
-            adv_ch_col1, adv_ch_col2 = st.columns(2)
-            with adv_ch_col1:
-                # 1. Material Distribution
-                top_mats_adv = mat_df.nlargest(6, "Estimated Cost")
-                oth_cost_adv = mat_df["Estimated Cost"].sum() - top_mats_adv["Estimated Cost"].sum()
-                if oth_cost_adv > 0:
-                    oth_row_adv = pd.DataFrame([{"Material Name": "Others", "Estimated Cost": oth_cost_adv}])
-                    mat_chart_adv = pd.concat([top_mats_adv, oth_row_adv])
-                else:
-                    mat_chart_adv = top_mats_adv
-                
-                fig_mat_adv = px.pie(
-                    mat_chart_adv, values="Estimated Cost", names="Material Name",
-                    color_discrete_sequence=charts.COLORS, hole=0.35
-                )
-                charts._apply_layout(fig_mat_adv, "Material Cost Distribution", 350)
-                st.plotly_chart(fig_mat_adv, use_container_width=True)
-
-                # 3. Machinery Distribution
-                fig_mach_adv = px.bar(
-                    mach_df, x="Estimated Cost", y="Machine Name", orientation="h",
-                    color="Estimated Cost", color_continuous_scale=["#8B5CF6", "#A78BFA", "#C4B5FD"]
-                )
-                fig_mach_adv.update_coloraxes(showscale=False)
-                charts._apply_layout(fig_mach_adv, "Machinery Lease Allocations", 350)
-                st.plotly_chart(fig_mach_adv, use_container_width=True)
-
-            with adv_ch_col2:
-                # 2. Labour Cost
-                fig_lab_adv = px.bar(
-                    lab_df, x="Role", y="Estimated Cost", color="Estimated Cost",
-                    color_continuous_scale=["#1E40AF", "#3B82F6", "#60A5FA"]
-                )
-                fig_lab_adv.update_coloraxes(showscale=False)
-                charts._apply_layout(fig_lab_adv, "Labour Trade Expenses", 350)
-                st.plotly_chart(fig_lab_adv, use_container_width=True)
-
-                # 4. Budget Allocation
-                adv_cats_alloc = ["Materials", "Labour", "Machinery", "Transportation", "GST Tax", "Contingency", "Miscellaneous"]
-                adv_vals_alloc = [
-                    adv_mat_total, adv_lab_total, adv_mach_total, adv_trans_cost, adv_tax, adv_contingency, adv_misc
-                ]
-                budget_alloc_df = pd.DataFrame({"Category": adv_cats_alloc, "Allocation": adv_vals_alloc})
-                fig_budget_adv = px.pie(
-                    budget_alloc_df, values="Allocation", names="Category",
-                    color_discrete_sequence=charts.COLORS, hole=0.45
-                )
-                charts._apply_layout(fig_budget_adv, "Overall Project Budget Split", 350)
-                st.plotly_chart(fig_budget_adv, use_container_width=True)
-
-            # Export logic setup
-            adv_proj_info_dict = {
-                "Project Name": st.session_state.adv_project_name,
-                "Project ID": st.session_state.adv_project_id,
-                "Client Name": st.session_state.adv_client_name,
-                "Project Location": st.session_state.adv_project_location,
-                "Construction Type": st.session_state.adv_construction_type,
-                "Building Category": st.session_state.adv_building_category,
-                "Number of Floors": st.session_state.adv_num_floors,
-                "Total Plot Area (sq ft)": st.session_state.adv_plot_area,
-                "Built-up Area (sq ft)": st.session_state.adv_built_up_area,
-                "Duration (Days)": st.session_state.adv_duration_days,
-                "Budget Limit": st.session_state.adv_budget_limit
-            }
-
-            # Download document option at bottom of workspace
-            excel_data_adv = generate_excel_bytes_v2(adv_proj_info_dict, mat_df, lab_df, mach_df, adv_summary_map)
-            st.download_button(
-                label="📥 Export Excel Estimate (.xlsx)",
-                data=excel_data_adv,
-                file_name=f"Advanced_Cost_Estimate_{st.session_state.adv_project_id}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key="adv_download_excel"
-            )
-
-        # Compile Context payload for AI advisor
-        advisor_context_str = compile_adv_context_v2(
-            {
-                "name": st.session_state.adv_project_name,
-                "id": st.session_state.adv_project_id,
-                "client": st.session_state.adv_client_name,
-                "location": st.session_state.adv_project_location,
-                "type": st.session_state.adv_construction_type,
-                "category": st.session_state.adv_building_category,
-                "floors": st.session_state.adv_num_floors,
-                "timeline": st.session_state.adv_duration_days,
-                "built_up_area": st.session_state.adv_built_up_area
-            },
-            st.session_state.adv_floors,
-            mat_df,
-            lab_df,
-            mach_df,
-            adv_summary_map
-        )
-
-        # ------------------------------------------------------
-        # SECTION H: AI CONSTRUCTION ADVISOR (Embedded Right Side Panel)
-        # ------------------------------------------------------
-        with col_ai:
-            st.markdown(
-                """
-                <div class="cih-glass-card" style="margin-bottom: 8px;">
-                    <div class="cih-card-title">🤖 AI Construction Advisor (Section H)</div>
-                    <p style="margin: 0; font-size: 0.75rem; color: #94A3B8;">Dedicated workspace consultant panel</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-            
-            # Interactive chat history container
-            chat_container = st.container(height=420)
-            with chat_container:
-                for msg in st.session_state.adv_chat_history:
-                    with st.chat_message(msg["role"]):
-                        st.markdown(msg["content"])
-                        
-            # Quick inquiries prompt chips
-            st.markdown("<p style='font-size:0.7rem; font-weight:600; color:#64748B; margin:8px 0 4px 0;'>QUICK ESTIMATOR INQUIRIES</p>", unsafe_allow_html=True)
-            c_chip1, c_chip2 = st.columns(2)
-            with c_chip1:
-                if st.button("📊 Bill of Quantities", key="chip_boq", use_container_width=True):
-                    st.session_state.adv_chat_input = "Generate a basic Bill of Quantities (BOQ)"
-                    st.session_state.adv_chat_trigger = True
-                if st.button("💸 Reduce Budget", key="chip_reduce", use_container_width=True):
-                    st.session_state.adv_chat_input = "Suggest ways to reduce the overall budget"
-                    st.session_state.adv_chat_trigger = True
-            with c_chip2:
-                if st.button("⚖️ Cheaper Materials", key="chip_cheaper", use_container_width=True):
-                    st.session_state.adv_chat_input = "Suggest alternative cheaper materials"
-                    st.session_state.adv_chat_trigger = True
-                if st.button("🚨 Risk Analysis", key="chip_risk", use_container_width=True):
-                    st.session_state.adv_chat_input = "Identify potential cost risks"
-                    st.session_state.adv_chat_trigger = True
-                    
-            # Text query input and send button
-            user_query = st.text_input("Ask a question about this cost configuration...", key="adv_chat_input_text", value=st.session_state.get("adv_chat_input", ""))
-            
-            if st.button("💬 Send to AI Advisor", key="adv_send_query_btn", use_container_width=True, type="primary") or st.session_state.get("adv_chat_trigger", False):
-                query_to_send = user_query if not st.session_state.get("adv_chat_trigger", False) else st.session_state.adv_chat_input
-                st.session_state.adv_chat_input = "" # Reset
-                st.session_state.adv_chat_trigger = False # Reset
-                
-                if query_to_send.strip():
-                    # Add user query
-                    st.session_state.adv_chat_history.append({"role": "user", "content": query_to_send})
-                    
-                    with st.spinner("Advisor analyzing project data..."):
-                        try:
-                            # 1. Format history messages for LLM
-                            history_msgs = [{"role": m["role"], "content": m["content"]} for m in st.session_state.adv_chat_history[:-1]]
-                            # 2. Query Ollama insights
-                            reply_text = ollama_service.insights(query_to_send, history_msgs, advisor_context_str)
-                        except Exception as e:
-                            # 3. Fallback to local Python simulated advisor
-                            reply_text = generate_python_simulated_response(query_to_send, advisor_context_str)
-                            
-                    st.session_state.adv_chat_history.append({"role": "assistant", "content": reply_text})
-                    st.rerun()
-                    
-            if st.button("🔄 Reset Consultant Conversation", key="adv_reset_chat_btn", use_container_width=True):
-                st.session_state.adv_chat_history = [{
-                    "role": "assistant",
-                    "content": "Welcome to your embedded Construction Estimator AI Advisor. I have parsed your active building layouts, material totals, and machinery rental schedule. Ask me any queries about cost-savings, timelines, or BOQs!"
-                }]
-                st.rerun()

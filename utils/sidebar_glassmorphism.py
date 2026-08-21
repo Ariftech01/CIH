@@ -124,7 +124,7 @@ def apply_sidebar_radio_glassmorphism():
 import streamlit as st
 from your_module import apply_sidebar_radio_glassmorphism  # Import this function
 
-st.set_page_config(page_title="Construction Intelligence Hub", layout="wide")
+st.set_page_config(page_title="Agentic AI for Safety Monitoring with Construction Risk Analytics", layout="wide")
 
 # Apply glassmorphism styling (call once, near top)
 apply_sidebar_radio_glassmorphism()

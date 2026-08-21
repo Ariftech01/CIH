@@ -1,4 +1,4 @@
-"""Project management module for Construction Intelligence Hub (CIH).
+"""Project management module for Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH).
 
 Provides master project creation with expanded Building Information modeling metadata,
 cross-module active project synchronization, version history, and real-time status updates.
@@ -252,8 +252,9 @@ def _render_create_project_form() -> None:
                 st.error("End date must be after start date")
             else:
                 try:
-                    code_suffix = project_name.replace(" ", "")[:3].upper()
-                    project_code = f"PRJ-{code_suffix}-{st.session_state.get('user_id', '001')[:3].upper()}"
+                    code_suffix = project_name.replace(" ", "")[:3].upper() if project_name else "GEN"
+                    base_project_code = f"PRJ-{code_suffix}-{st.session_state.get('user_id', '001')[:3].upper()}"
+                    project_code = project_service.generate_unique_project_code(base_project_code)
                     total_rooms = bedrooms + bathrooms + living_rooms + kitchens + offices + conferences + storage
 
                     p_create = ProjectCreate(
@@ -410,24 +411,15 @@ def _render_update_status(projects: pd.DataFrame) -> None:
         st.success(f"Project {project_id} updated to {new_status} at {new_progress}% progress. Synchronized across all modules.")
 
 
+from modules.cost_estimation import (
+    render_basic_cost_estimator,
+    render_construction_cost_estimator,
+)
+
+
 def render() -> None:
     """Render project management page."""
     render_page_header("Project Management", "Manage construction projects & master building metadata across all sites")
-
-    # Display Active Project Banner
-    active_code = st.session_state.get("active_project_code", "None Selected")
-    st.markdown(
-        f"""
-        <div style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); border-left: 4px solid #3B82F6; padding: 0.65rem 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
-            <div>
-                <span style="font-weight: 700; color: #F8FAFC;">Active Project Context:</span>
-                <span style="color: #38BDF8; font-weight: 600; margin-left: 0.5rem;">{active_code}</span>
-            </div>
-            <span style="font-size: 0.75rem; color: #94A3B8;">Cross-Module Lifecycle Active</span>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
     db_projects = project_service.get_all_projects()
     if db_projects:
@@ -466,25 +458,59 @@ def render() -> None:
         avg_progress = projects["Progress"].mean()
         render_kpi_card("Avg Progress", f"{avg_progress:.0f}%", "📈")
 
-    tab1, tab2, tab3, tab4 = st.tabs(["📋 All Projects", "➕ Create Master Project", "🔍 View Details & Versions", "🔄 Update Status"])
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "📋 All Projects",
+        "➕ Create Master Project",
+        "💰 Basic Cost Estimator",
+        "🏗️ Construction Cost Estimator"
+    ])
 
     with tab1:
-        st.markdown("#### Project Portfolio Registry")
-        _render_project_table(projects)
-        st.markdown("<br>", unsafe_allow_html=True)
-        btn_col1, btn_col2, btn_col3 = st.columns(3)
-        with btn_col1:
-            st.button("➕ Create Project", key="btn_create", use_container_width=True)
-        with btn_col2:
-            st.button("🔍 View Details", key="btn_view", use_container_width=True)
-        with btn_col3:
-            st.button("🔄 Update Status", key="btn_status", use_container_width=True)
+        pm_view_state = st.session_state.get("pm_view_state", "list")
+
+        if pm_view_state == "details":
+            _render_project_details(projects)
+            st.markdown("<br>", unsafe_allow_html=True)
+            col_nav1, col_nav2 = st.columns(2)
+            with col_nav1:
+                if st.button("📋 All Projects", key="btn_details_back_to_list", use_container_width=True):
+                    st.session_state["pm_view_state"] = "list"
+                    st.rerun()
+            with col_nav2:
+                if st.button("🔄 Update Status", key="btn_details_to_update_status", use_container_width=True, type="primary"):
+                    st.session_state["pm_view_state"] = "update_status"
+                    st.rerun()
+
+        elif pm_view_state == "update_status":
+            _render_update_status(projects)
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("📋 All Projects", key="btn_update_back_to_list", use_container_width=True):
+                st.session_state["pm_view_state"] = "list"
+                st.rerun()
+
+        else:
+            st.markdown("#### Project Portfolio Registry")
+            _render_project_table(projects)
+            st.markdown("<br>", unsafe_allow_html=True)
+            btn_col1, btn_col2, btn_col3 = st.columns(3)
+            with btn_col1:
+                if st.button("➕ Create Project", key="btn_create", use_container_width=True):
+                    st.info("Switch to the '➕ Create Master Project' tab above to register a new master project.")
+            with btn_col2:
+                if st.button("🔍 View Details", key="btn_view", use_container_width=True):
+                    st.session_state["pm_view_state"] = "details"
+                    st.rerun()
+            with btn_col3:
+                if st.button("🔄 Update Status", key="btn_status", use_container_width=True):
+                    st.session_state["pm_view_state"] = "update_status"
+                    st.rerun()
 
     with tab2:
         _render_create_project_form()
 
     with tab3:
-        _render_project_details(projects)
+        render_basic_cost_estimator()
 
     with tab4:
-        _render_update_status(projects)
+        render_construction_cost_estimator()
+

@@ -169,3 +169,34 @@ def test_persistence_and_editability_workflow():
     assert st.session_state.get("active_project_id") == pc.id
 
 
+def test_generate_unique_project_code_auto_increment():
+    """Verify that generating project code auto-increments suffix when code already exists in DB."""
+    base_code = f"PRJ-UNIQ-{int(pytest.importorskip('time').time())}-001"
+    code1 = project_service.generate_unique_project_code(base_code)
+    assert code1 == base_code.upper()
+
+    # Create first project with base_code
+    project_service.create_project(ProjectCreate(
+        project_name="Unique Test Project 1",
+        project_code=code1,
+        budget=100000.0
+    ))
+
+    # Next call with same base code should auto-increment to 002
+    code2 = project_service.generate_unique_project_code(base_code)
+    assert code2 != code1
+    assert code2.endswith("-002")
+
+    # Create second project with code2
+    project_service.create_project(ProjectCreate(
+        project_name="Unique Test Project 2",
+        project_code=code2,
+        budget=100000.0
+    ))
+
+    # Next call should auto-increment to 003
+    code3 = project_service.generate_unique_project_code(base_code)
+    assert code3.endswith("-003")
+
+
+

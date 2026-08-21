@@ -1,4 +1,4 @@
-"""Construction Intelligence Hub - Main Application Entry Point."""
+"""Agentic AI for Safety Monitoring with Construction Risk Analytics - Main Application Entry Point."""
 
 import importlib
 import sys
@@ -16,7 +16,7 @@ from backend.startup import initialize_hybrid_runtime  # noqa: E402
 
 # Page configuration
 st.set_page_config(
-    page_title="Construction Intelligence Hub",
+    page_title="Agentic AI for Safety Monitoring with Construction Risk Analytics",
     page_icon="🏗️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -25,19 +25,13 @@ st.set_page_config(
 # Navigation map for high-performance lazy module loading
 PAGE_MODULES = {
     "🏠 Dashboard": "modules.dashboard",
-    "🛡️ Construction Risk Intelligence": "modules.construction_risk",
+    "🛡️ Risk Intelligence": "modules.construction_risk",
     "🤖 AI Analysis": "modules.ai_analysis",
     "🏗️ 3D Building Visualizer": "modules.building_visualizer",
     "📁 Project Management": "modules.project_management",
-    "💰 Cost Estimation": "modules.cost_estimation",
-    "🧱 Material Management": "modules.material_management",
-    "👷 Worker Management": "modules.worker_management",
-    "🦺 Safety Monitoring": "modules.safety_monitoring",
-    "🚜 Equipment Tracking": "modules.equipment_tracking",
-    "📈 Progress Monitoring": "modules.progress_monitoring",
+    "🚧 Construction Operations": "modules.construction_operations",
     "📄 Reports": "modules.reports",
     "⚙ Settings": "modules.settings",
-    "ℹ About": "modules.about",
 }
 
 
@@ -78,94 +72,13 @@ def main() -> None:
 
     with st.sidebar:
         render_sidebar_branding(str(logo_path) if logo_path.exists() else None)
-        st.markdown("---")
-
-        # CURRENT PROJECT Selector Control
-        try:
-            from backend.workflow.project_workflow import project_workflow
-            
-            db_projs = _get_cached_sidebar_projects()
-            if db_projs:
-                active_obj = project_workflow.get_active_project()
-                curr_active_id = active_obj.id if active_obj else db_projs[0].id
-                
-                proj_map = {}
-                sel_idx = 0
-                for idx, p in enumerate(db_projs):
-                    label = f"🏗️ {p.project_name}"
-                    proj_map[label] = p
-                    if p.id == curr_active_id:
-                        sel_idx = idx
-
-                def _on_sidebar_project_change():
-                    new_val = st.session_state.get("sidebar_active_project_selector")
-                    if new_val in proj_map:
-                        project_workflow.set_active_project(proj_map[new_val].id)
-
-                st.markdown("<div style='font-size:0.75rem; font-weight:700; color:#94A3B8; letter-spacing:0.05em; margin-bottom:4px;'>CURRENT PROJECT</div>", unsafe_allow_html=True)
-                
-                selected_label = st.selectbox(
-                    "CURRENT PROJECT",
-                    list(proj_map.keys()),
-                    index=sel_idx,
-                    key="sidebar_active_project_selector",
-                    on_change=_on_sidebar_project_change,
-                    label_visibility="collapsed"
-                )
-                chosen_proj = proj_map.get(selected_label) or db_projs[sel_idx]
-                
-                # Active project metadata pill
-                b_type = getattr(chosen_proj, "building_type", None) or "Commercial"
-                status_txt = getattr(chosen_proj, "status", None) or "In Progress"
-                st.markdown(
-                    f"""
-                    <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 6px; padding: 6px 10px; margin-top: 4px; margin-bottom: 4px;">
-                        <div style="font-size: 0.75rem; color: #94A3B8; font-weight: 500; display: flex; align-items: center; justify-content: space-between;">
-                            <span style="color: #60A5FA; font-weight: 700;">{chosen_proj.project_code}</span>
-                            <span style="color: #34D399; font-size: 0.7rem; font-weight: 600;">{status_txt}</span>
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-        except Exception:
-            pass
-
-        st.markdown("---")
         selection = st.radio(
             "Navigation",
             list(PAGE_MODULES.keys()),
             label_visibility="collapsed",
             key="navigation_selection",
         )
-        st.markdown("---")
-        st.markdown(
-            """
-            <div style="text-align:center; padding:0.5rem 0 0.75rem 0; color:#64748B; font-size:0.75rem;">
-                <div style="color:#3B82F6; font-weight:600;">CIH v1.0</div>
-                <div style="margin-top:0.25rem;">Enterprise Platform</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
         render_logout_button()
-
-    # Workspace Header Active Project Indicator
-    try:
-        from backend.workflow.project_workflow import project_workflow
-        active_proj = project_workflow.get_active_project()
-        if active_proj:
-            st.markdown(
-                f"""
-                <div style="background: linear-gradient(90deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.5)); border-left: 3px solid #3B82F6; padding: 4px 12px; margin-bottom: 10px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between;">
-                    <span style="font-size: 0.8rem; color: #94A3B8;">CURRENT PROJECT: <strong style="color: #F8FAFC;">{active_proj.project_name}</strong> (<span style="color: #60A5FA;">{active_proj.project_code}</span>)</span>
-                    <span style="font-size: 0.72rem; color: #34D399; background: rgba(34, 197, 94, 0.1); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.3);">{active_proj.status or "IN PROGRESS"}</span>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-    except Exception:
-        pass
 
     # Lazy-load and render selected page
     module_path = PAGE_MODULES.get(selection, "modules.dashboard")

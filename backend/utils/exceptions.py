@@ -1,5 +1,5 @@
 """
-Custom Exception Classes for Construction Intelligence Hub (CIH) Backend.
+Custom Exception Classes for Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH) Backend.
 """
 
 class CIHBaseException(Exception):

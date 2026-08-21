@@ -21,7 +21,7 @@ class APIGateway:
         return {
             "openapi": "3.0.3",
             "info": {
-                "title": "Construction Intelligence Hub Enterprise API",
+                "title": "Agentic AI for Safety Monitoring with Construction Risk Analytics Enterprise API",
                 "version": "1.0.0",
                 "description": "Production REST API platform for CIH management, BIM automation, and AI Copilot."
             },

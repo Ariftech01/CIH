@@ -7,14 +7,14 @@ from utils.styles import render_page_header
 
 def render() -> None:
     """Render about page."""
-    render_page_header("About", "Construction Intelligence Hub — Enterprise Platform")
+    render_page_header("About", "Agentic AI for Safety Monitoring with Construction Risk Analytics — Enterprise Platform")
 
     st.markdown(
         """
         <div class="cih-about-hero">
             <div style="font-size:4rem; margin-bottom:1rem;">🏗️</div>
-            <h1 style="font-size:2.5rem; font-weight:800; color:var(--text-primary); margin:0;">
-                Construction Intelligence Hub
+            <h1 style="font-size:2rem; font-weight:800; color:var(--text-primary); margin:0; line-height:1.25;">
+                Agentic AI for Safety Monitoring with Construction Risk Analytics
             </h1>
             <p style="font-size:1.1rem; color:#3B82F6; margin-top:0.5rem; font-weight:600;">
                 Enterprise Construction Management Platform
@@ -44,7 +44,7 @@ def render() -> None:
             <div class="cih-glass-card">
                 <div class="cih-card-title">📋 Project Overview</div>
                 <p style="color:var(--text-secondary); line-height:1.7; font-size:0.9rem;">
-                    Construction Intelligence Hub (CIH) is a centralized construction management platform
+                    Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH) is a centralized construction management platform
                     designed to streamline project operations, cost estimation, resource tracking, and
                     safety compliance. This frontend prototype demonstrates enterprise-grade UI/UX patterns
                     inspired by industry leaders like Autodesk Construction Cloud, Procore, and SAP Fiori.
@@ -100,7 +100,7 @@ def render() -> None:
     st.markdown(
         """
         <div style="text-align:center; margin-top:2rem; padding:1.5rem; color:#64748B; font-size:0.85rem;">
-            Frontend Prototype · Developed using Streamlit · © 2026 Construction Intelligence Hub
+            Frontend Prototype · Developed using Streamlit · © 2026 Agentic AI for Safety Monitoring with Construction Risk Analytics
         </div>
         """,
         unsafe_allow_html=True,

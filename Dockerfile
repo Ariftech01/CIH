@@ -1,4 +1,4 @@
-# Multi-stage production Dockerfile for Construction Intelligence Hub (CIH)
+# Multi-stage production Dockerfile for Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH)
 
 # Stage 1: Build & Dependencies
 FROM python:3.11-slim AS builder

@@ -9,7 +9,7 @@ class Settings(BaseModel):
     Values come from environment variables and .env files only.
     """
 
-    PROJECT_NAME: str = "Construction Intelligence Hub"
+    PROJECT_NAME: str = "Agentic AI for Safety Monitoring with Construction Risk Analytics"
     VERSION: str = "1.0.0"
     APP_ENV: str = os.getenv("APP_ENV", os.getenv("ENVIRONMENT", "development"))
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", os.getenv("APP_ENV", "development"))

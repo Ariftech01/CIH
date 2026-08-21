@@ -687,7 +687,7 @@ def render() -> None:
                             {greeting}
                         </h1>
                         <div style="font-weight:700; font-size:1.2rem; color:#3B82F6; margin-bottom:0.5rem;">
-                            Construction Intelligence Hub AI
+                            Agentic AI for Safety Monitoring with Construction Risk Analytics AI
                         </div>
                         <div style="font-size:0.85rem; color:#64748B; margin-bottom:0.75rem; font-weight:500;">
                             Enterprise Construction Engineering Assistant

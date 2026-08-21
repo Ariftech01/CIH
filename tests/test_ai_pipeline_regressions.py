@@ -119,7 +119,7 @@ class TestAIPipelineRegressions(unittest.TestCase):
             self.assertEqual(resp.status, 200)
             res = json.loads(resp.read().decode("utf-8"))
             self.assertFalse(res["is_valid"])
-            self.assertIn("Construction Intelligence Hub AI", res["response"])
+            self.assertIn("Agentic AI for Safety Monitoring with Construction Risk Analytics AI", res["response"])
 
         # 2. Project ID query test via HTTP API
         prj_data = json.dumps({"message": "PRJ-0A752A status report", "module": "Project Management"}).encode("utf-8")

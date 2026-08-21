@@ -1,4 +1,4 @@
-"""Unified AI Enterprise Pipeline for Construction Intelligence Hub (CIH).
+"""Unified AI Enterprise Pipeline for Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH).
 
 Enforces deterministic 5-stage inference flow with microsecond latency profiling:
 1. Stage 1: Intent Routing & Domain Guardrail Validation

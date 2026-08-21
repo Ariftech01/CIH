@@ -1,3 +1,4 @@
+import time
 from typing import List, Optional
 from backend.database.session import get_db_session
 from backend.repositories.project_repository import ProjectRepository
@@ -30,7 +31,7 @@ class ProjectService:
 
         with get_db_session() as session:
             repo = ProjectRepository(session)
-            if not repo.get_by_code(base_code):
+            if not repo.get_by_code(base_code, include_deleted=True):
                 return base_code
             
             import re
@@ -46,7 +47,7 @@ class ProjectService:
 
             while counter < 10000:
                 candidate = f"{prefix}-{str(counter).zfill(padding)}"
-                if not repo.get_by_code(candidate):
+                if not repo.get_by_code(candidate, include_deleted=True):
                     return candidate
                 counter += 1
             return f"{prefix}-{int(time.time())}"

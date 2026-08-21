@@ -11,7 +11,7 @@ from backend.app_logging.logger import db_logger
 
 class AnalyticsEngine:
     """
-    Enterprise Analytics & KPI aggregation engine for Construction Intelligence Hub.
+    Enterprise Analytics & KPI aggregation engine for Agentic AI for Safety Monitoring with Construction Risk Analytics.
     """
     def get_dashboard_kpis(self, project_id: Optional[str] = None) -> Dict[str, Any]:
         cache_key = f"dashboard_kpis_{project_id}" if project_id else "dashboard_kpis"

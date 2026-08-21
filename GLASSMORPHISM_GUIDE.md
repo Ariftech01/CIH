@@ -342,7 +342,7 @@ If styling doesn't apply:
 
 ---
 
-**Designed for:** Construction Intelligence Hub  
+**Designed for:** Agentic AI for Safety Monitoring with Construction Risk Analytics  
 **Author:** CSS Specialist  
 **Version:** 1.0  
 **License:** MIT

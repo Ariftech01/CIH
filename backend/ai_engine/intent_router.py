@@ -62,8 +62,14 @@ class IntentRouter:
         extracted = self.extract_entity_ids(prompt)
         has_entities = any(len(codes) > 0 for codes in extracted.values())
 
-        # Entity IDs (e.g. PRJ-0A752A) are automatically valid construction domain queries
-        if not has_entities and not is_construction_domain(prompt):
+        has_explicit_entities = False
+        for pattern in ENTITY_PATTERNS.values():
+            if pattern.search(prompt):
+                has_explicit_entities = True
+                break
+
+        # Explicit entity IDs in prompt (e.g. PRJ-0A752A) are valid construction queries
+        if not has_explicit_entities and not is_construction_domain(prompt):
             return {
                 "is_valid": False,
                 "intent": "OUT_OF_DOMAIN",

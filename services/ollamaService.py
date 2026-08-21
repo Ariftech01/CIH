@@ -1,4 +1,4 @@
-"""Ollama Service Layer for Construction Intelligence Hub (CIH).
+"""Ollama Service Layer for Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH).
 
 Provides a domain-validated, enterprise-grade AI integration with local Ollama,
 featuring lightweight pre-flight domain filtering, hidden master system prompts,
@@ -23,7 +23,7 @@ MAX_RETRIES = 3  # Maximum automatic retries for transient timeouts/failures
 # CONSTANTS & DOMAIN TAXONOMY
 # ───────────────────────────────────────────────────────────────────────────
 
-MASTER_CONSTRUCTION_SYSTEM_PROMPT = """You are Construction Intelligence Hub AI.
+MASTER_CONSTRUCTION_SYSTEM_PROMPT = """You are Agentic AI for Safety Monitoring with Construction Risk Analytics AI.
 
 You are an experienced Civil Engineer, Construction Project Manager, Quantity Surveyor, Site Engineer, Cost Consultant, Safety Officer, Equipment Specialist, and Construction Planning Expert.
 
@@ -50,9 +50,9 @@ Structure your response using the following headers where applicable:
 """
 
 DEFAULT_REFUSAL_TEXT = (
-    "Construction Intelligence Hub AI\n\n"
+    "Agentic AI for Safety Monitoring with Construction Risk Analytics AI\n\n"
     "Thank you for your question.\n\n"
-    "I am a domain-specific AI assistant developed exclusively for the Construction Intelligence Hub platform.\n\n"
+    "I am a domain-specific AI assistant developed exclusively for the Agentic AI for Safety Monitoring with Construction Risk Analytics platform.\n\n"
     "My expertise is focused on:\n\n"
     "• Construction Engineering\n"
     "• Civil Engineering\n"
@@ -133,6 +133,7 @@ NON_CONSTRUCTION_KEYWORDS = [
 
 MODULE_CONTEXT_INSTRUCTIONS = {
     "dashboard": "You are assisting with executive construction dashboard analysis.",
+    "riskintelligence": "You are acting as an Enterprise Construction Risk Intelligence Specialist. Focus on multi-agent risk assessment, site hazard evaluation, workforce safety, regulatory compliance, insurance exposure, executive report composition, and automated site risk mitigation.",
     "constructionriskintelligence": "You are acting as an Enterprise Construction Risk Intelligence Specialist. Focus on multi-agent risk assessment, site hazard evaluation, workforce safety, regulatory compliance, insurance exposure, executive report composition, and automated site risk mitigation.",
     "projectmanagement": "You are assisting with construction project management.",
     "costestimation": "You are acting as a Senior Construction Cost Consultant. Focus on cost estimation, budget optimization, rate analysis, BOQ structure, financial contingency, and cost reduction strategies.",
@@ -141,6 +142,7 @@ MODULE_CONTEXT_INSTRUCTIONS = {
     "safetymonitoring": "You are acting as a Senior Construction Safety Officer. Focus on site safety protocols, OSHA compliance, IS 456 / IS 1893 hazard mitigation, PPE enforcement, and incident prevention.",
     "equipmenttracking": "You are acting as a Heavy Equipment Specialist. Focus on construction machinery fleet utilization, crane operations, excavation equipment, fuel efficiency, and preventive maintenance.",
     "progressmonitoring": "You are assisting with progress monitoring and schedule milestone tracking.",
+    "constructionoperations": "You are acting as an Enterprise Construction Operations Director. Focus on unified operations, materials management, workforce tracking, site safety compliance, equipment fleet availability, and project milestone progress.",
     "reports": "You are assisting with construction executive report generation.",
     "aianalysis": "You are assisting with construction document intelligence and predictive modeling."
 }
@@ -231,13 +233,13 @@ def render_domain_refusal_card(user_prompt: str = "") -> None:
             <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
                 <span style="font-size:1.8rem;">🏗️</span>
                 <div>
-                    <div style="font-weight:700; font-size:1.05rem; color:var(--text-primary);">Construction Intelligence Hub AI</div>
+                    <div style="font-weight:700; font-size:1.05rem; color:var(--text-primary);">Agentic AI for Safety Monitoring with Construction Risk Analytics AI</div>
                     <div style="font-size:0.78rem; color:var(--text-muted);">CIH Domain-Specific Engineering Assistant</div>
                 </div>
             </div>
             <div style="font-size:0.9rem; color:var(--text-secondary); line-height:1.6; margin-bottom:1rem;">
                 Thank you for your question.<br><br>
-                I am a domain-specific AI assistant developed exclusively for the Construction Intelligence Hub platform.<br><br>
+                I am a domain-specific AI assistant developed exclusively for the Agentic AI for Safety Monitoring with Construction Risk Analytics platform.<br><br>
                 <strong>My expertise is focused on:</strong>
                 <ul style="margin: 0.5rem 0 0.75rem 1.2rem; padding: 0;">
                     <li>Construction Engineering</li>
@@ -617,7 +619,7 @@ def get_module_context(selection: str, project_id: Optional[str] = None) -> str:
     active_p_code = st.session_state.get("active_project_code", "") if hasattr(st, "session_state") else ""
 
     norm = selection.lower()
-    for char in ["🏠", "🛡️", "🤖", "📁", "💰", "🧱", "👷", "🦺", "🚜", "📈", "📄", "⚙", "ℹ", " "]:
+    for char in ["🏠", "🛡️", "🤖", "📁", "💰", "🧱", "👷", "🦺", "🚜", "📈", "📄", "⚙", "ℹ", "🚧", " "]:
         norm = norm.replace(char, "")
 
     # Inject hidden module-specific context instruction
@@ -684,6 +686,29 @@ def get_module_context(selection: str, project_id: Optional[str] = None) -> str:
             context_lines.append("Daily Safety Checklist Passed: " + str(sum(1 for v in checklist.values() if v)))
         except Exception as e:
             context_lines.append(f"Safety records unavailable: {str(e)}")
+
+    elif "constructionoperations" in norm or "operations" in norm:
+        try:
+            materials = dummy_data.get_materials()
+            workers = dummy_data.get_workers()
+            checklist = dummy_data.get_safety_checklist()
+            equipment = dummy_data.get_equipment()
+            milestones = dummy_data.get_progress_milestones()
+
+            adequate = len(materials[materials["Status"] == "Adequate"])
+            present = len(workers[workers["Status"] == "Present"])
+            passed = sum(1 for v in checklist.values() if v)
+            avail_eq = sum(1 for e in equipment if e["Availability"] == "Available")
+            prog = milestones["Progress"].mean()
+
+            context_lines.append("=== CONSTRUCTION OPERATIONS OVERVIEW ===")
+            context_lines.append(f"- Materials Health: {adequate}/{len(materials)} Adequate Stock")
+            context_lines.append(f"- Workforce On Site: {present}/{len(workers)} Active Workers")
+            context_lines.append(f"- Safety Checklist: {passed}/{len(checklist)} items verified")
+            context_lines.append(f"- Equipment Fleet: {avail_eq}/{len(equipment)} Available")
+            context_lines.append(f"- Project Progress: {prog:.1f}% Completion")
+        except Exception as e:
+            context_lines.append(f"Operations records unavailable: {str(e)}")
 
     elif "costestimation" in norm:
         try:

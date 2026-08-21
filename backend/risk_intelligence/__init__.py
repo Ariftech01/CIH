@@ -1,6 +1,6 @@
 """
 Construction Risk Intelligence (CRI) Enterprise Subsystem.
-Extends Construction Intelligence Hub (CIH) with enterprise-grade risk analysis,
+Extends Agentic AI for Safety Monitoring with Construction Risk Analytics (CIH) with enterprise-grade risk analysis,
 specialized risk agents, deterministic risk scoring, historical snapshotting, and actionable recommendations.
 """
 
