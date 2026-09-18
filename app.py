@@ -38,7 +38,8 @@ PAGE_MODULES = {
 @st.cache_resource(show_spinner=False)
 def load_page_module(module_path: str):
     """Dynamically import and cache page module on demand."""
-    return importlib.import_module(module_path)
+    mod = importlib.import_module(module_path)
+    return importlib.reload(mod)
 
 
 @st.cache_data(ttl=60, show_spinner=False)

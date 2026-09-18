@@ -5,6 +5,7 @@ Compliance Agent, Insurance Agent, Reporting Agent, Historical Analytics, and Au
 with real-time ingestion layers and interactive feeds.
 """
 
+from datetime import datetime
 import streamlit as st
 import pandas as pd
 from utils import charts, dummy_data
@@ -585,15 +586,26 @@ def render() -> None:
 
     # TAB 6: REPORTING AGENT
     with tab6:
-        st.markdown("#### 📋 Reporting Agent Subsystem")
+        st.markdown(
+            """
+            <div style="margin-bottom: 1rem;">
+                <h3 style="font-size: 1.35rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.25rem 0;">
+                    📄 Reporting Agent Subsystem
+                </h3>
+                <div style="font-size: 0.88rem; color: var(--text-secondary);">
+                    Enterprise Multi-Agent Synthesis, Statutory Regulatory Dossiers & Stakeholder Distribution
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-        # Real-Time Ingestion Layer (Extra UI Layer)
         with st.expander("📄 Enterprise Multi-Agent Synthesis & Distribution Parameters", expanded=True):
             st.markdown(
                 """
                 <div class="cri-hud-overlay">
                     <span class="cri-pulse-badge"><span class="cri-pulse-dot"></span> REPORT COMPOSITION PIPELINE READY</span>
-                    <span style="color:#94A3B8;">DISPATCH: Automated Digest & Audit Export</span>
+                    <span style="color:#94A3B8;">DISPATCH: Automated Digest & Multi-Format Audit Export</span>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -614,23 +626,177 @@ def render() -> None:
                 custom_notes = st.text_area("Executive Directives & Assessment Remarks", placeholder="Enter specific audit remarks or project directives to embed into the generated synthesis...", key="rep_custom_notes")
 
             with col_r2:
-                export_fmt = st.multiselect("Export Formats", ["Interactive PDF", "Spreadsheet (XLSX)", "JSON Audit Trail"], default=["Interactive PDF", "JSON Audit Trail"], key="rep_export_fmt")
+                export_fmt = st.multiselect(
+                    "Export Formats",
+                    ["Interactive PDF", "Spreadsheet (XLSX)", "Executive Report (.TXT)", "JSON Audit Trail"],
+                    default=["Interactive PDF", "Spreadsheet (XLSX)", "JSON Audit Trail"],
+                    key="rep_export_fmt"
+                )
                 distribution_list = st.text_input("Notification Stakeholder Email(s)", value="safety-director@cih-enterprise.com, compliance@project.gov", key="rep_dist_list")
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        ra_res = ReportingAgent().analyze(sample_context)
+        if "ra_generated_reports" not in st.session_state:
+            st.session_state.ra_generated_reports = {}
 
-        st.markdown(f"**Generated Enterprise Report ID:** `{ra_res.findings.get('report_id')}`")
-        if st.button("📄 Generate & Synthesize Multi-Agent Report", use_container_width=True, key="ra_page_gen_btn"):
-            st.success(f"Enterprise Executive Summary synthesized for project '{active_project}' using template '{rep_template}'.")
+        if st.button("📄 Generate & Synthesize Multi-Agent Report", use_container_width=True, key="ra_page_gen_btn", type="primary"):
+            if not export_fmt:
+                st.warning("⚠️ Please select at least one export format (e.g. Interactive PDF, Spreadsheet XLSX, JSON Audit Trail).")
+            else:
+                with st.spinner("Executing Reporting Agent enterprise report composition pipeline..."):
+                    try:
+                        import re
+                        from backend.risk_intelligence.integrations.reporting_export_adapter import reporting_export_adapter
 
-        ent_rep = ra_res.findings.get("enterprise_report", {})
-        exec_sum = ent_rep.get("executive_summary", {})
-        if exec_sum:
-            st.markdown("##### Executive Summary Highlights")
-            for h in exec_sum.get("key_highlights", []):
-                st.markdown(f"- {h}")
+                        gen_context = dict(sample_context)
+                        gen_context["report_type"] = rep_template
+                        gen_context["custom_directives"] = custom_notes
+                        gen_context["export_formats"] = export_fmt
+                        gen_context["distribution_list"] = distribution_list
+
+                        ra_res = ReportingAgent().analyze(gen_context)
+                        ent_rep = ra_res.findings.get("enterprise_report", {})
+                        if not ent_rep.get("project_name"):
+                            ent_rep["project_name"] = active_project
+                        if not ent_rep.get("project_id"):
+                            ent_rep["project_id"] = active_project_id
+
+                        rep_id = ra_res.findings.get("report_id", "REP-GEN-001")
+                        now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+
+                        formats_data = {}
+                        if "Interactive PDF" in export_fmt:
+                            try:
+                                formats_data["pdf"] = reporting_export_adapter.compile_pdf_report(ent_rep, template_name=rep_template)
+                            except Exception as pdf_err:
+                                st.error(f"PDF Compilation error: {str(pdf_err)}")
+
+                        if "Spreadsheet (XLSX)" in export_fmt:
+                            try:
+                                formats_data["excel"] = reporting_export_adapter.compile_excel_report(ent_rep)
+                            except Exception as xls_err:
+                                st.error(f"Excel Compilation error: {str(xls_err)}")
+
+                        if "JSON Audit Trail" in export_fmt:
+                            try:
+                                formats_data["json"] = reporting_export_adapter.compile_json_report(ent_rep).encode("utf-8")
+                            except Exception as json_err:
+                                st.error(f"JSON Compilation error: {str(json_err)}")
+
+                        if "Executive Report (.TXT)" in export_fmt:
+                            try:
+                                formats_data["text"] = reporting_export_adapter.compile_text_report(ent_rep, template_name=rep_template).encode("utf-8")
+                            except Exception as txt_err:
+                                st.error(f"Text Compilation error: {str(txt_err)}")
+
+                        st.session_state.ra_generated_reports[active_project_id] = {
+                            "report_id": rep_id,
+                            "template": rep_template,
+                            "generated_at": now_str,
+                            "enterprise_report": ent_rep,
+                            "formats_data": formats_data,
+                            "summary": ra_res.summary,
+                            "key_highlights": ent_rep.get("executive_summary", {}).get("key_highlights", []),
+                            "recommendations": ent_rep.get("executive_summary", {}).get("top_recommendations", [])
+                        }
+                        st.success(f"✅ Enterprise Report '{rep_id}' synthesized successfully for project '{active_project}' using template '{rep_template}'.")
+
+                    except Exception as gen_err:
+                        st.error(f"❌ Enterprise Report Generation Failed: {str(gen_err)}")
+
+        active_gen_rep = st.session_state.ra_generated_reports.get(active_project_id)
+        if active_gen_rep:
+            import re
+            rep_id = active_gen_rep["report_id"]
+            formats_data = active_gen_rep.get("formats_data", {})
+
+            st.markdown(
+                f"""
+                <div class="cih-glass-card" style="border: 1px solid rgba(34, 197, 94, 0.3); border-left: 4px solid #22C55E; padding: 1rem; margin-top: 1rem; margin-bottom: 1rem;">
+                    <div style="font-weight: 700; font-size: 1rem; color: #22C55E;">📄 Report Ready for Download: {rep_id}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                        Template: <strong>{active_gen_rep['template']}</strong> | Generated: <strong>{active_gen_rep['generated_at']}</strong> | Classification: <strong>STRICTLY CONFIDENTIAL</strong>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+            st.markdown("##### ⬇️ Download Generated Report Files")
+
+            clean_proj_name = re.sub(r'[^a-zA-Z0-9_-]', '_', active_project)
+            clean_rep_id = re.sub(r'[^a-zA-Z0-9_-]', '_', rep_id)
+
+            available_cols = []
+            if "pdf" in formats_data: available_cols.append("pdf")
+            if "excel" in formats_data: available_cols.append("excel")
+            if "json" in formats_data: available_cols.append("json")
+            if "text" in formats_data: available_cols.append("text")
+
+            if available_cols:
+                dl_cols = st.columns(len(available_cols))
+                col_idx = 0
+
+                if "pdf" in formats_data:
+                    with dl_cols[col_idx]:
+                        st.download_button(
+                            "📄 Download PDF (.pdf)",
+                            data=formats_data["pdf"],
+                            file_name=f"CRI_Report_{clean_proj_name}_{clean_rep_id}.pdf",
+                            mime="application/pdf",
+                            use_container_width=True,
+                            key=f"dl_pdf_{clean_rep_id}"
+                        )
+                    col_idx += 1
+
+                if "excel" in formats_data:
+                    with dl_cols[col_idx]:
+                        st.download_button(
+                            "📊 Download Excel (.xlsx)",
+                            data=formats_data["excel"],
+                            file_name=f"CRI_Report_{clean_proj_name}_{clean_rep_id}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            use_container_width=True,
+                            key=f"dl_xlsx_{clean_rep_id}"
+                        )
+                    col_idx += 1
+
+                if "json" in formats_data:
+                    with dl_cols[col_idx]:
+                        st.download_button(
+                            "💾 Download JSON (.json)",
+                            data=formats_data["json"],
+                            file_name=f"CRI_Audit_{clean_proj_name}_{clean_rep_id}.json",
+                            mime="application/json",
+                            use_container_width=True,
+                            key=f"dl_json_{clean_rep_id}"
+                        )
+                    col_idx += 1
+
+                if "text" in formats_data:
+                    with dl_cols[col_idx]:
+                        st.download_button(
+                            "📝 Download Text (.txt)",
+                            data=formats_data["text"],
+                            file_name=f"CRI_Report_{clean_proj_name}_{clean_rep_id}.txt",
+                            mime="text/plain",
+                            use_container_width=True,
+                            key=f"dl_txt_{clean_rep_id}"
+                        )
+                    col_idx += 1
+
+            if active_gen_rep.get("key_highlights"):
+                st.markdown("##### Executive Summary Highlights")
+                for h in active_gen_rep["key_highlights"]:
+                    st.markdown(f"- {h}")
+        else:
+            ra_preview = ReportingAgent().analyze(sample_context)
+            ent_rep = ra_preview.findings.get("enterprise_report", {})
+            exec_sum = ent_rep.get("executive_summary", {})
+            if exec_sum:
+                st.markdown("##### Executive Summary Highlights (Preview)")
+                for h in exec_sum.get("key_highlights", []):
+                    st.markdown(f"- {h}")
 
     # TAB 7: HISTORICAL ANALYTICS
     with tab7:

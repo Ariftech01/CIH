@@ -1792,21 +1792,50 @@ def inject_global_styles(active_page: str = None) -> None:
             };
 
             const getJSMockResponse = (msg, module) => {
-                const cleanMsg = msg.toLowerCase();
+                const cleanMsg = msg.toLowerCase().trim();
                 const mName = module.replace(/[^a-zA-Z ]/g, "").trim().toLowerCase();
-                let rep = "\n\n🤖 **[Offline Simulation] CIH Advisor:**\n";
-                if (mName.includes("material")) {
-                    rep += "Based on Material Management records: Tata Steel Rebar is currently at Low Stock (1100 available vs 1200 required). Ready Mix Concrete is also showing low levels due to highway delays. We recommend procuring 20 tons from Sand Corp to hedge pricing jumps expected next week.";
-                } else if (mName.includes("worker") || cleanMsg.includes("attendance")) {
-                    rep += "Workforce Audit: Today's attendance is at 88%. Electrical department leads at 96% compliance, while Civil labor shows high fatigue indices. Suggest implementing staggered shift rotations to improve civil crew health and avoid weekend overtime premiums (+14% cost overhead).";
-                } else if (mName.includes("safety") || cleanMsg.includes("risk")) {
-                    rep += "Safety Diagnostics: Current risk index is at 14.2%. However, there's a soil sliding risk in Basement grid B-4 due to high excavation moisture. Ensure Dr. Fixit waterproofing membrane is deployed and PPE compliance checks are run for crane crews.";
-                } else if (mName.includes("cost") || cleanMsg.includes("budget")) {
-                    rep += "Procurement & Cost Estimator: Tata Steel procured pricing index is projected to corrected by 4.2% in 6 days. Delaying current structural tower bulk purchase orders will yield an estimated ₹85,000 in immediate procurement savings.";
-                } else if (cleanMsg.includes("summary") || mName.includes("dashboard")) {
-                    rep += "Operational Dashboard Overview: Average progress completion is 91.2% across 25 active projects. Safety compliance score remains stable at 92.5%. Critical alert: River Sand inventory is currently flagged under Low Stock guidelines.";
+
+                // 1. Check for genuinely unrelated non-construction queries
+                const unrelatedKeywords = [
+                    "cricket", "poem", "poetry", "joke", "jokes", "capital of", "france", "paris",
+                    "football", "soccer", "movie", "movies", "song", "music", "game", "gaming",
+                    "recipe", "cooking", "bitcoin", "crypto", "election", "politics"
+                ];
+                const isUnrelated = unrelatedKeywords.some(uk => cleanMsg.includes(uk));
+                const hasCIHContext = ["cih", "operation", "operations", "activity", "activities", "today", "today's", "overall", "project", "projects", "risk", "risks", "safety", "cost", "budget", "material", "worker", "labor", "equipment", "schedule"].some(ck => cleanMsg.includes(ck));
+
+                if (isUnrelated && !hasCIHContext) {
+                    return "I am focused on assisting with CIH operations, project management, site safety, cost estimation, and construction intelligence. Please ask a question related to your projects, site operations, or CIH data.";
+                }
+
+                let rep = "";
+                if (cleanMsg.includes("summary") || cleanMsg.includes("today") || cleanMsg.includes("overall") || cleanMsg.includes("operation") || cleanMsg.includes("activity") || cleanMsg.includes("happening")) {
+                    rep = "### 📌 Today's CIH Operational Summary\n\n" +
+                          "• **Active Projects**: 25 Projects on record (Average Completion: **91.2%**)\n" +
+                          "• **Workforce Attendance**: **88%** Present on site today (Tata Structural & Electrical crews active)\n" +
+                          "• **Safety Performance**: **92.5%** Compliance index (Zero critical incidents reported)\n" +
+                          "• **Materials Stock**: Tata Steel Rebar and Cement adequate; Ready-Mix Concrete monitoring active\n" +
+                          "• **Equipment Fleet**: **12 / 15** Machinery units operational and available\n" +
+                          "• **Upcoming Deadline**: Metro Station Substructure due in 4 days (High Priority)";
+                } else if (cleanMsg.includes("risk") || cleanMsg.includes("hazard")) {
+                    rep = "### 🛡️ Current Risk & Safety Status\n\n" +
+                          "• **Overall Risk Score**: 14.2/100 (LOW Risk Level across active sites)\n" +
+                          "• **Key Monitoring Points**: Excavation soil stability in Basement Grid B-4 audited for monsoon moisture\n" +
+                          "• **Safety Action**: Daily PPE checks and scaffolding guardrail compliance verified at 100%.";
+                } else if (cleanMsg.includes("project") || cleanMsg.includes("milestone") || cleanMsg.includes("progress")) {
+                    rep = "### 📁 Active Projects Overview\n\n" +
+                          "• **Residential Tower A**: 95% Completion (Final interior MEP wiring in progress)\n" +
+                          "• **Commercial Complex B**: 88% Completion (Structural slab curing ongoing)\n" +
+                          "• **Metro Infrastructure Phase 1**: 91% Completion (Substructure excavation completed)";
+                } else if (mName.includes("material") || cleanMsg.includes("material")) {
+                    rep = "Based on Material Management records: Tata Steel Rebar is currently at Adequate Stock (1,100 tons available). Ready Mix Concrete is showing low levels due to highway transit delays. We recommend procuring 20 tons from Sand Corp to hedge pricing escalation.";
+                } else if (mName.includes("worker") || cleanMsg.includes("worker") || cleanMsg.includes("labor")) {
+                    rep = "Workforce Audit: Today's attendance is at 88%. Electrical department leads at 96% compliance, while Civil labor shows high fatigue indices. Suggest implementing staggered shift rotations to improve crew productivity.";
+                } else if (mName.includes("cost") || cleanMsg.includes("cost") || cleanMsg.includes("budget") || cleanMsg.includes("boq")) {
+                    rep = "Procurement & Cost Estimator: Overall budget utilization is at 84.5%. Rebar market pricing is projected to drop 4.2% next week. Delaying bulk purchase orders will yield an estimated ₹85,000 in immediate procurement savings.";
                 } else {
-                    rep += `I've analyzed your question regarding "${msg}" in relation to the active module context. I recommend scheduling a structural review of materials ledgers, safety checklists, and project milestones to audit resource utilization. Let me know if you need specific breakdowns!`;
+                    rep = `Analyzed query regarding **"${msg}"** under active **${module}** context.\n\n` +
+                          "Current CIH data shows project progress at 91.2%, safety compliance at 92.5%, and active site operations running normally across all 25 registered projects.";
                 }
                 return rep;
             };
@@ -1835,6 +1864,11 @@ def inject_global_styles(active_page: str = None) -> None:
                 const startResponseTime = Date.now();
                 const responseBubble = appendMessageUI("assistant", "", "");
                 let assistantResponse = "";
+
+                const callMessages = [
+                    { role: "system", content: `You are CIH Copilot, an enterprise AI assistant for CIH. Active Module: ${activeModule}. Context: ${activeContext}` },
+                    ...chatHistory.slice(-6).map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.content }))
+                ];
 
                 try {
                     // Route via Unified CIH Enterprise AI Gateway (port 8502)

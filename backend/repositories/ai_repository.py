@@ -33,13 +33,31 @@ class AIRepository:
         )
         return self.session.execute(stmt).scalar_one_or_none()
 
-    def get_user_conversations(self, user_id: str) -> List[AIConversation]:
+    def get_user_conversations(self, user_id: Optional[str] = None) -> List[AIConversation]:
         stmt = (
             select(AIConversation)
-            .where(AIConversation.user_id == user_id, AIConversation.is_deleted == False)
-            .order_by(desc(AIConversation.last_message_at))
+            .where(AIConversation.is_deleted == False)
         )
+        if user_id:
+            stmt = stmt.where(AIConversation.user_id == user_id)
+        stmt = stmt.options(selectinload(AIConversation.messages)).order_by(desc(AIConversation.last_message_at))
         return list(self.session.execute(stmt).scalars().all())
+
+    def update_conversation_title(self, conversation_id: str, new_title: str) -> Optional[AIConversation]:
+        conv = self.conversation_repo.get_by_id(conversation_id)
+        if conv:
+            conv.conversation_title = new_title
+            conv.last_message_at = datetime.utcnow()
+            self.session.flush()
+        return conv
+
+    def delete_conversation(self, conversation_id: str) -> bool:
+        conv = self.conversation_repo.get_by_id(conversation_id)
+        if conv:
+            conv.is_deleted = True
+            self.session.flush()
+            return True
+        return False
 
     def add_message(self, conversation_id: str, sender: str, message: str, tokens: int = 0) -> AIMessage:
         msg = self.message_repo.create({

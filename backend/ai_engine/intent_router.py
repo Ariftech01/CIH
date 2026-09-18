@@ -49,18 +49,22 @@ class IntentRouter:
 
         return entities
 
-    def route_intent(self, prompt: str) -> Dict[str, Any]:
+    def route_intent(
+        self,
+        prompt: str,
+        chat_history: Optional[List[Dict[str, str]]] = None,
+        module_name: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Classify prompt intent, extract identifiers, and enforce domain guardrails.
 
         Returns:
             Dict containing:
                 is_valid (bool): Whether query passes domain guardrail.
-                intent (str): ENTITY_LOOKUP | SAFETY_AUDIT | COST_ESTIMATE | GENERAL_CONSTRUCTION | OUT_OF_DOMAIN
+                intent (str): ENTITY_LOOKUP | OPERATIONS_SUMMARY | PROJECT_STATUS | SAFETY_AUDIT | COST_ESTIMATE | GENERAL_CIH | OUT_OF_DOMAIN
                 extracted_entities (Dict[str, List[str]])
                 refusal_response (Optional[str])
         """
         extracted = self.extract_entity_ids(prompt)
-        has_entities = any(len(codes) > 0 for codes in extracted.values())
 
         has_explicit_entities = False
         for pattern in ENTITY_PATTERNS.values():
@@ -68,8 +72,8 @@ class IntentRouter:
                 has_explicit_entities = True
                 break
 
-        # Explicit entity IDs in prompt (e.g. PRJ-0A752A) are valid construction queries
-        if not has_explicit_entities and not is_construction_domain(prompt):
+        # Explicit entity IDs or valid CIH/construction query passes guardrail
+        if not has_explicit_entities and not is_construction_domain(prompt, chat_history=chat_history, module_name=module_name):
             return {
                 "is_valid": False,
                 "intent": "OUT_OF_DOMAIN",
@@ -79,14 +83,18 @@ class IntentRouter:
 
         prompt_lower = prompt.lower() if prompt else ""
 
-        if has_entities:
+        if has_explicit_entities:
             intent = "ENTITY_LOOKUP"
-        elif any(k in prompt_lower for k in ["safety", "ppe", "hazard", "risk", "osha", "inspection"]):
+        elif any(k in prompt_lower for k in ["summarize", "today", "overall", "activity", "operations", "overview", "happening", "update"]):
+            intent = "OPERATIONS_SUMMARY"
+        elif any(k in prompt_lower for k in ["project", "projects", "status", "milestone", "progress", "workflow"]):
+            intent = "PROJECT_STATUS"
+        elif any(k in prompt_lower for k in ["safety", "ppe", "hazard", "risk", "osha", "inspection", "compliance"]):
             intent = "SAFETY_AUDIT"
         elif any(k in prompt_lower for k in ["cost", "budget", "boq", "estimate", "pricing", "rate"]):
             intent = "COST_ESTIMATE"
         else:
-            intent = "GENERAL_CONSTRUCTION"
+            intent = "GENERAL_CIH"
 
         return {
             "is_valid": True,
@@ -94,6 +102,7 @@ class IntentRouter:
             "extracted_entities": extracted,
             "refusal_response": None
         }
+
 
 
 intent_router = IntentRouter()

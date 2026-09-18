@@ -23,81 +23,44 @@ MAX_RETRIES = 3  # Maximum automatic retries for transient timeouts/failures
 # CONSTANTS & DOMAIN TAXONOMY
 # ───────────────────────────────────────────────────────────────────────────
 
-MASTER_CONSTRUCTION_SYSTEM_PROMPT = """You are Agentic AI for Safety Monitoring with Construction Risk Analytics AI.
+MASTER_CONSTRUCTION_SYSTEM_PROMPT = """You are CIH Copilot, an enterprise AI assistant for the Construction Intelligence Hub (CIH).
 
-You are an experienced Civil Engineer, Construction Project Manager, Quantity Surveyor, Site Engineer, Cost Consultant, Safety Officer, Equipment Specialist, and Construction Planning Expert.
-
-Your purpose is to assist construction professionals.
-
-Always provide professional, structured, technically accurate responses formatted like engineering reports.
-
-When calculations are approximate, clearly state your assumptions.
-
-Never invent project-specific data.
-
-If sufficient information is unavailable, ask follow-up questions.
-
-Prefer construction standards and engineering best practices.
-
-Respond using headings, bullet lists, tables, and professional markdown formatting whenever appropriate.
-
-Structure your response using the following headers where applicable:
-### 📌 Executive Summary
-### 🏗️ Detailed Engineering Explanation
-### 🎯 Recommendations
-### ⚙️ Engineering Best Practices
-### ❓ Suggested Follow-up Questions
+Core Guidelines:
+1. Primary Scope: Assist with CIH operations, project status, construction progress, risk & safety monitoring, cost estimation/BOQ, materials, workforce, equipment, schedules, and analytics.
+2. Application Context: Utilize all provided active module and project data to answer user queries accurately.
+3. Data Accuracy: Never invent unavailable CIH project data. If specific data is missing from context, state clearly what is unavailable and provide whatever relevant information is available.
+4. Response Style: Concise, professional, structured markdown.
+5. Conversation Context: Maintain conversation context across messages.
+6. Out-of-Scope Requests: For questions genuinely unrelated to CIH or construction/engineering (e.g. sports, general trivia, jokes, creative writing), politely state in 1-2 sentences that Copilot is focused on CIH and construction assistance, and briefly redirect the user. Do not refuse valid operational or project queries.
 """
 
 DEFAULT_REFUSAL_TEXT = (
-    "Agentic AI for Safety Monitoring with Construction Risk Analytics AI\n\n"
-    "Thank you for your question.\n\n"
-    "I am a domain-specific AI assistant developed exclusively for the Agentic AI for Safety Monitoring with Construction Risk Analytics platform.\n\n"
-    "My expertise is focused on:\n\n"
-    "• Construction Engineering\n"
-    "• Civil Engineering\n"
-    "• Project Planning\n"
-    "• Cost Estimation\n"
-    "• Safety Monitoring\n"
-    "• Material Management\n"
-    "• Equipment Tracking\n"
-    "• Workforce Management\n"
-    "• Construction Documentation\n"
-    "• Infrastructure Projects\n\n"
-    "The question you asked appears to be outside the scope of this application.\n\n"
-    "Please ask questions related to construction engineering or project management.\n\n"
-    "Here are some examples:\n\n"
-    "• Estimate the cost of a residential building.\n"
-    "• Generate a Bill of Quantities.\n"
-    "• Suggest construction materials.\n"
-    "• Explain reinforced concrete.\n"
-    "• Recommend excavation equipment.\n"
-    "• Generate a construction safety checklist.\n"
-    "• Analyze a construction report."
+    "I am focused on assisting with CIH operations, project management, site safety, cost estimation, and construction intelligence. "
+    "Please ask a question related to your projects, site operations, or CIH data."
 )
 
 CONSTRUCTION_KEYWORDS = [
     # General & Civil Engineering
     "construction", "civil", "build", "building", "structure", "structural", "architecture", "architect",
-    "site", "contractor", "subcontractor", "engineer", "engineering", "infrastructure", "project",
+    "site", "contractor", "subcontractor", "engineer", "engineering", "infrastructure", "project", "projects",
     "rcc", "reinforced concrete", "reinforced cement concrete", "curing", "waterproofing",
     "stadium", "bridge", "bridges", "bim", "building information modeling", "autocad", "cad",
     "earthquake-resistant", "earthquake resistant", "green building", "green buildings", "leed",
     # Materials
     "concrete", "cement", "steel", "rebar", "tmt", "brick", "mortar", "sand", "aggregate", "asphalt",
     "bitumen", "wood", "timber", "glass", "tile", "tiles", "paint", "roofing", "shuttering", "formwork",
-    "plaster", "insulation", "façade", "facade", "cladding", "material", "inventory",
+    "plaster", "insulation", "façade", "facade", "cladding", "material", "materials", "inventory",
     # Scope & Tasks
     "foundation", "piling", "footing", "excavation", "trench", "slab", "beam", "column", "wall", "masonry",
     "scaffolding", "shoring", "curtain wall", "mep", "hvac", "plumbing", "electrical", "wiring", "conduit",
     "drainage", "flooring", "compaction", "slump", "survey", "geotechnical", "soil", "grading",
     # Cost & Estimation
-    "boq", "bill of quantities", "estimate", "estimation", "cost", "budget", "rate", "unit rate", "price",
+    "boq", "bill of quantities", "estimate", "estimation", "cost", "costs", "budget", "budgets", "rate", "unit rate", "price",
     "procurement", "purchase", "vendor", "supplier", "tender", "bid", "bidding", "quantity surveyor",
     "takeoff", "contingency", "financial", "ledger",
     # Safety & Compliance
-    "safety", "hazard", "risk", "ppe", "helmet", "harness", "osha", "is 456", "is 1893", "nbc", "code",
-    "standard", "inspection", "audit", "permit", "compliance", "incident", "accident",
+    "safety", "hazard", "hazards", "risk", "risks", "ppe", "helmet", "harness", "osha", "is 456", "is 1893", "nbc", "code",
+    "standard", "inspection", "audit", "permit", "compliance", "incident", "incidents", "accident", "accidents",
     # Workforce & Management
     "labor", "labour", "worker", "workers", "crew", "masons", "welder", "rigger", "foreman", "supervisor",
     "workforce", "manpower", "attendance", "shift", "productivity",
@@ -105,20 +68,20 @@ CONSTRUCTION_KEYWORDS = [
     "equipment", "machinery", "fleet", "crane", "excavator", "bulldozer", "loader", "dumper", "truck",
     "batching plant", "mixer", "generator", "compactor", "tanker", "maintenance", "idle", "uptime",
     # Schedule & Progress
-    "schedule", "scheduling", "gantt", "milestone", "delay", "timeline", "duration", "critical path",
+    "schedule", "scheduling", "gantt", "milestone", "milestones", "delay", "delays", "timeline", "duration", "critical path",
     "cpm", "pert", "wbs", "progress", "completion", "weekly report", "daily report", "site report", "logistics"
 ]
 
 NON_CONSTRUCTION_KEYWORDS = [
     # Sports & Celebrities
-    "virat", "kohli", "ms dhoni", "dhoni", "cricket score", "ipl", "football match", "soccer match", "messi", "ronaldo",
+    "virat", "kohli", "ms dhoni", "dhoni", "cricket score", "cricket", "ipl", "football match", "soccer match", "messi", "ronaldo",
     "sports score", "nfl score", "nba score", "fifa world cup", "world cup winner",
     # Entertainment, Movies & Media
     "movie", "movies", "film", "films", "actor", "actress", "cinema", "hollywood", "bollywood",
-    "netflix", "song", "music", "album", "gaming", "game", "playstation", "xbox", "joke", "jokes",
-    # Politics & Current Events
+    "netflix", "song", "music", "album", "gaming", "game", "playstation", "xbox", "joke", "jokes", "poem", "poetry",
+    # Politics, Current Events & General Geography
     "prime minister", "president", "election", "politics", "political", "modi", "biden", "trump",
-    "parliament", "war news", "political news", "today's political news",
+    "parliament", "war news", "political news", "capital of", "france", "paris",
     # General Programming & Unrelated Tech
     "python code", "write python", "programming question", "programming questions", "how to code",
     "javascript array", "html button", "react hook", "java spring", "c++ pointers", "code snake",
@@ -163,11 +126,11 @@ PROMPT_INJECTION_PATTERNS = [
 # DOMAIN VALIDATION & UI HELPERS
 # ───────────────────────────────────────────────────────────────────────────
 
-def is_construction_domain(prompt: str) -> bool:
-    """Pre-flight validation to check if prompt belongs to the construction domain.
+def is_construction_domain(prompt: str, chat_history: Optional[List[Dict[str, str]]] = None, module_name: Optional[str] = None) -> bool:
+    """Pre-flight validation to check if prompt belongs to the CIH/construction domain.
 
     Returns:
-        bool: True if construction-related or general greeting; False if non-construction topic.
+        bool: True if CIH/construction/operational query or greeting; False if genuinely unrelated topic.
     """
     if not prompt or not prompt.strip():
         return False
@@ -177,11 +140,7 @@ def is_construction_domain(prompt: str) -> bool:
     # 1. Block adversarial prompt injection attempts unless accompanied by valid construction query
     for pattern in PROMPT_INJECTION_PATTERNS:
         if pattern in prompt_lower:
-            # Check if there is an actual construction question embedded
-            construction_overrides = ["concrete", "cement", "boq", "steel", "foundation", "scaffolding", "excavation", "rcc", "bridge", "stadium foundation"]
-            if not any(co in prompt_lower for co in construction_overrides):
-                return False
-            return False  # Strict security: deny prompt injection attempts unconditionally
+            return False
 
     # 2. Greetings & System intros are welcome
     greetings = ["hi", "hello", "hey", "who are you", "what can you do", "help", "good morning", "good evening", "greetings"]
@@ -192,37 +151,50 @@ def is_construction_domain(prompt: str) -> bool:
     if re.search(r"\b(?:PRJ|RISK|WRK|WKR|EMP|EQP|EQ|DOC)-[A-Za-z0-9_-]+\b", prompt, re.IGNORECASE):
         return True
 
-    # 3. Explicit strong positive construction indicators (overrides weak generic non-construction words like 'cricket' in 'cricket stadium')
-    strong_positive = [
-        "construction", "civil", "structure", "structural", "architecture", "architect",
+    # 4. Strong positive construction terms (e.g. concrete, boq, rebar, excavation, scaffolding, civil, construction)
+    strong_construction = [
+        "construction", "civil", "building", "structure", "structural", "architecture", "architect",
         "contractor", "subcontractor", "boq", "bill of quantities", "concrete", "cement", "steel", "rebar",
         "tmt", "mason", "masonry", "slab", "beam", "column", "foundation", "piling", "footing",
         "excavation", "trench", "scaffolding", "shoring", "mep", "hvac", "plumbing", "shuttering",
         "formwork", "plaster", "waterproofing", "is 456", "is 1893", "nbc", "osha", "takeoff",
-        "batching plant", "tower crane", "excavator", "bulldozer", "gantt", "critical path", "cpm",
-        "rcc", "reinforced concrete", "curing", "stadium foundation", "stadium design", "build a cricket stadium",
-        "build a stadium", "construct a bridge", "bridge", "bridges", "earthquake-resistant", "earthquake resistant",
-        "green building", "green buildings", "bim", "autocad", "cad", "site inspection", "cost estimation",
-        "labor productivity", "labour productivity", "construction delay", "construction delays",
-        "budget optimization", "construction risk", "recommend machinery"
+        "batching plant", "tower crane", "excavator", "bulldozer", "gantt", "critical path", "cpm"
     ]
-    has_strong_positive = any(sp in prompt_lower for sp in strong_positive)
+    has_strong_construction = any(sc in prompt_lower for sc in strong_construction)
 
-    # 4. Check negative non-construction indicators
-    has_negative = any(nk in prompt_lower for nk in NON_CONSTRUCTION_KEYWORDS)
+    # 5. Check for off-topic / non-construction keywords
+    has_unrelated = any(nk in prompt_lower for nk in NON_CONSTRUCTION_KEYWORDS)
 
-    if has_negative and not has_strong_positive:
+    # If prompt contains off-topic keywords (e.g. snake game, prime minister, france capital, jokes) and no strong construction terms -> False
+    if has_unrelated and not has_strong_construction:
         return False
 
-    if has_strong_positive:
+    # 6. CIH Application & Operational Keywords
+    cih_app_keywords = [
+        "cih", "operation", "operations", "activity", "activities", "today", "today's", "overall",
+        "happening", "status", "summary", "summarize", "overview", "update", "updates", "alert",
+        "alerts", "kpi", "kpis", "dashboard", "module", "system", "data", "report", "reports",
+        "analytics", "workflow", "progress", "project", "projects", "risk", "risks", "safety",
+        "cost", "costs", "budget", "budgets", "material", "materials", "worker", "workers",
+        "workforce", "labor", "labour", "equipment", "machinery", "schedule", "schedules",
+        "milestone", "milestones", "delay", "delays", "boq", "estimation", "inventory",
+        "incident", "incidents", "compliance", "site", "fleet", "inspection"
+    ]
+
+    has_cih_app = any(ck in prompt_lower for ck in cih_app_keywords)
+    has_construction = any(ck in prompt_lower for ck in CONSTRUCTION_KEYWORDS)
+
+    # Valid CIH/application/operational or construction keywords -> True
+    if has_cih_app or has_construction or has_strong_construction:
         return True
 
-    # 5. Check positive construction indicators
-    has_positive = any(ck in prompt_lower for ck in CONSTRUCTION_KEYWORDS)
-    if has_positive:
+    # If active conversation history exists, allow follow-up queries
+    if chat_history and len(chat_history) > 0:
         return True
 
     return False
+
+
 
 
 def render_domain_refusal_card(user_prompt: str = "") -> None:

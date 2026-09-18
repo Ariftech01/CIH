@@ -24,7 +24,8 @@ class ReportingAnalyzer:
         Executes complete 10-stage deterministic report composition pipeline.
         Returns structured EnterpriseReport payload.
         """
-        app_logger.info(f"ReportingAnalyzer generating report type '{report_type}' for project '{reporting_context.get('project_id')}'")
+        clean_type_log = report_type.encode('ascii', 'ignore').decode('ascii').strip() or "EXECUTIVE_REPORT"
+        app_logger.info(f"ReportingAnalyzer generating report type '{clean_type_log}' for project '{reporting_context.get('project_id')}'")
         report_id = f"REP_{uuid.uuid4().hex[:8]}"
 
         project_id = reporting_context.get("project_id", "UNKNOWN_PROJECT")
@@ -36,12 +37,13 @@ class ReportingAnalyzer:
 
         component_scores = reporting_context.get("component_scores", {})
         recommendations = reporting_context.get("recommendations", [])
+        custom_directives = reporting_context.get("custom_directives", "").strip()
 
         # 1. Executive Summary Composition
         highlights = [
             f"Overall Project Risk Score evaluated at {overall_risk_score:.1f}/100 ({risk_level}).",
             f"Project Health Status: {health_status} (Index: {health_info.get('health_index', 100.0):.1f}/100).",
-            f"Evaluated {len(component_scores)} specialized analytical components."
+            f"Evaluated {len(component_scores)} specialized analytical components under template '{report_type}'."
         ]
 
         critical_count = 0
@@ -64,17 +66,28 @@ class ReportingAnalyzer:
         sections: List[ReportSection] = []
         order_idx = 1
 
-        # 2. Section 1: Project Overview
+        # 2. Section 1: Project Overview & Scope
         sections.append(ReportSection(
             title="Project Overview & Assessment Scope",
-            content=f"Comprehensive Risk Intelligence Report synthesized for {project_name} (ID: {project_id}). Assessment executed under CRIE pipeline orchestration.",
+            content=f"Comprehensive Risk Intelligence Report synthesized for {project_name} (ID: {project_id}). Assessment executed under CRIE multi-agent orchestration for template '{report_type}'.",
             section_type="SUMMARY",
             order=order_idx,
-            metadata={"project_id": project_id, "project_name": project_name}
+            metadata={"project_id": project_id, "project_name": project_name, "template": report_type}
         ))
         order_idx += 1
 
-        # 3. Section 2: Unified Risk Aggregation
+        # 3. Custom Directives Section (If provided by user)
+        if custom_directives:
+            sections.append(ReportSection(
+                title="Executive Directives & Specific Remarks",
+                content=custom_directives,
+                section_type="TEXT",
+                order=order_idx,
+                metadata={"type": "CUSTOM_DIRECTIVES"}
+            ))
+            order_idx += 1
+
+        # 4. Section 2: Unified Risk Aggregation
         risk_content = f"Overall Risk Score: {overall_risk_score:.1f}/100. Classification: {risk_level}.\nComponent Scores evaluated:\n"
         for comp_name, comp_data in component_scores.items():
             risk_content += f"- {comp_name}: Score {comp_data.get('score', 0.0):.1f}/100 (Weight: {comp_data.get('weight', 1.0)})\n"
@@ -88,7 +101,7 @@ class ReportingAnalyzer:
         ))
         order_idx += 1
 
-        # 4. Section 3: Specialized Agent Analytical Breakdown
+        # 5. Section 3: Specialized Agent Analytical Breakdown
         for comp_name, comp_data in component_scores.items():
             breakdown = comp_data.get("breakdown", {})
             findings_list = breakdown.get("findings", [])
@@ -108,7 +121,7 @@ class ReportingAnalyzer:
             ))
             order_idx += 1
 
-        # 5. Section 4: Actionable Recommendations
+        # 6. Section 4: Actionable Recommendations
         rec_text = "### Enterprise Action Plan & Strategic Recommendations\n"
         for i, rec in enumerate(recommendations):
             rec_text += f"{i+1}. [{rec.get('priority', 'MEDIUM')}] {rec.get('title')}: {rec.get('description')}\n   Action: {rec.get('suggested_action')}\n"
